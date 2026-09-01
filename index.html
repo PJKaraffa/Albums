@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Search, organize, and value your vinyl record collection.">
-  <title>GrooveVault | LP Collection</title>
+  <title>Karaffa Vault | LP Collection</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
@@ -13,12 +13,13 @@
 <body>
   <div id="toast" class="toast" role="status"></div>
   <section id="authView" class="auth-shell">
-    <div class="auth-art"><div class="record"><div class="label">GV</div></div><h1>GrooveVault</h1><p>Your collection, beautifully organized.</p></div>
+    <div class="auth-art"><div class="record"><div class="label">KV</div></div><h1>Karaffa Vault</h1><p>Our family collection, beautifully organized.</p></div>
     <form id="authForm" class="auth-card">
       <span class="eyebrow">VINYL COLLECTION MANAGER</span>
       <h2 id="authTitle">Welcome back</h2>
       <p id="authCopy">Sign in to open your record room.</p>
       <label>Email<input id="email" type="email" required autocomplete="email" placeholder="you@example.com"></label>
+      <label id="usernameField" class="hidden">Username<input id="username" type="text" maxlength="40" autocomplete="nickname" placeholder="PJ"></label>
       <label>Password<input id="password" type="password" required minlength="6" autocomplete="current-password" placeholder="At least 6 characters"></label>
       <button id="authSubmit" class="primary" type="submit">Sign in</button>
       <button id="toggleAuth" class="text-btn" type="button">New here? Create an account</button>
@@ -28,7 +29,7 @@
 
   <div id="appView" class="app hidden">
     <aside class="sidebar">
-      <a class="brand" href="#"><span class="mini-record"></span><span>GrooveVault</span></a>
+      <a class="brand" href="#"><span class="mini-record"></span><span>Karaffa Vault</span></a>
       <nav><button class="nav-item active">◉ <span>My Collection</span></button><button id="addNav" class="nav-item">＋ <span>Add Album</span></button></nav>
       <div class="side-footer"><div class="avatar" id="avatar">P</div><div><strong id="userEmail">Collector</strong><button id="signOut" class="signout">Sign out</button></div></div>
     </aside>
@@ -47,6 +48,7 @@
           <div class="search-wrap">⌕<input id="search" type="search" placeholder="Search artist, album, label, catalog number…"></div>
           <select id="genreFilter"><option value="">All genres</option></select>
           <select id="conditionFilter"><option value="">All conditions</option><option>Mint (M)</option><option>Near Mint (NM)</option><option>Very Good Plus (VG+)</option><option>Very Good (VG)</option><option>Good Plus (G+)</option><option>Good (G)</option><option>Fair (F)</option><option>Poor (P)</option></select>
+          <select id="collectorFilter"><option value="">All collectors</option></select>
           <select id="sort"><option value="artist">Artist A–Z</option><option value="title">Album A–Z</option><option value="year_desc">Newest first</option><option value="value_desc">Highest value</option><option value="created_desc">Recently added</option></select>
           <button id="exportBtn" class="outline">Export CSV</button>
         </div>
