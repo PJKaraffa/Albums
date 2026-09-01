@@ -1,6 +1,5 @@
 const SUPABASE_URL = 'https://relmecpdjifmlmeyubof.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_6v7O6VP7oeT5hkxzeGGgGw_QZGWVmXA';
-
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const $ = id => document.getElementById(id);
 let albums = [], profiles = [], currentUser = null, signUpMode = false;
