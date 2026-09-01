@@ -6,9 +6,9 @@ A shared family LP collection backed by Supabase. It includes account sign-in, c
 
 1. Create a Supabase project.
 2. Open **SQL Editor**, paste in `supabase.sql`, and run it once.
-3. Open **Project Settings → API** and copy the Project URL and anon/public key.
-4. In `app.js`, replace `YOUR_SUPABASE_URL` and `YOUR_SUPABASE_ANON_KEY`.
-5. Upload the four web files to GitHub. With GitHub Pages, choose **Settings → Pages → Deploy from a branch**.
+3. The supplied `app.js` is already connected to the Karaffa Vault Supabase project.
+4. Upload every supplied file to GitHub, replacing the files with the same names. With GitHub Pages, choose **Settings → Pages → Deploy from a branch**.
+5. If GitHub is already hosting an older copy, wait for the deployment to finish and then press **Ctrl+F5** to force-refresh the page.
 
 Never put the Supabase `service_role` key in this webpage. The anon key is intended for browser use; the included Row Level Security policies keep every collector's records private.
 
