@@ -1,6 +1,6 @@
-# GrooveVault LP Collection Manager
+# Karaffa Vault LP Collection Manager
 
-A static HTML/CSS/JavaScript app backed by Supabase. It includes account sign-in, private per-user collections, album search and filters, Goldmine-style vinyl/sleeve condition grades, pricing, collection totals, cover images, editing, deletion, and CSV export.
+A shared family LP collection backed by Supabase. It includes account sign-in, collector attribution and filtering, multiple pressings of the same album, album search and filters, Goldmine-style vinyl/sleeve condition grades, pricing, collection totals, cover images, editing, deletion, and CSV export.
 
 ## Setup
 
