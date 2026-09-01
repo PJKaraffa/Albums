@@ -2,27 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Search, organize, and value the Karaffa family vinyl collection.">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="Search, organize, and value the Karaffa family vinyl collection."
+  >
 
   <title>Karaffa Vault | LP Collection</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
 
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
     rel="stylesheet"
   >
 
-  <link rel="stylesheet" href="styles.css?v=4">
-  <link rel="stylesheet" href="cover-upload.css?v=4">
+  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="cover-upload.css?v=5">
 </head>
 
 <body>
-  <div id="toast" class="toast" role="status"></div>
+  <div
+    id="toast"
+    class="toast"
+    role="status"
+    aria-live="polite"
+  ></div>
 
-  <!-- LOGIN AND ACCOUNT CREATION -->
+  <!-- LOGIN -->
   <section id="authView" class="auth-shell">
     <div class="auth-art">
       <div class="record">
@@ -30,17 +51,28 @@
       </div>
 
       <h1>Karaffa Vault</h1>
-      <p>Our family collection, beautifully organized.</p>
+
+      <p>
+        Our family collection, beautifully organized.
+      </p>
     </div>
 
     <form id="authForm" class="auth-card">
-      <span class="eyebrow">VINYL COLLECTION MANAGER</span>
+      <span class="eyebrow">
+        VINYL COLLECTION MANAGER
+      </span>
 
-      <h2 id="authTitle">Welcome back</h2>
-      <p id="authCopy">Sign in to open the Karaffa Vault.</p>
+      <h2 id="authTitle">
+        Welcome back
+      </h2>
+
+      <p id="authCopy">
+        Sign in to open the Karaffa Vault.
+      </p>
 
       <label>
         Email
+
         <input
           id="email"
           type="email"
@@ -50,8 +82,12 @@
         >
       </label>
 
-      <label id="usernameField" class="hidden">
+      <label
+        id="usernameField"
+        class="hidden"
+      >
         Username
+
         <input
           id="username"
           type="text"
@@ -63,6 +99,7 @@
 
       <label>
         Password
+
         <input
           id="password"
           type="password"
@@ -73,17 +110,25 @@
         >
       </label>
 
-      <button id="authSubmit" class="primary" type="submit">
+      <button
+        id="authSubmit"
+        class="primary"
+        type="submit"
+      >
         Sign in
       </button>
 
-      <button id="toggleAuth" class="text-btn" type="button">
+      <button
+        id="toggleAuth"
+        class="text-btn"
+        type="button"
+      >
         New here? Create an account
       </button>
     </form>
   </section>
 
-  <!-- MAIN APPLICATION -->
+  <!-- APPLICATION -->
   <div id="appView" class="app hidden">
     <aside class="sidebar">
       <a class="brand" href="#">
@@ -92,21 +137,40 @@
       </a>
 
       <nav>
-        <button class="nav-item active" type="button">
+        <button
+          class="nav-item active"
+          type="button"
+        >
           ◉ <span>My Collection</span>
         </button>
 
-        <button id="addNav" class="nav-item" type="button">
+        <button
+          id="addNav"
+          class="nav-item"
+          type="button"
+        >
           ＋ <span>Add Album</span>
         </button>
       </nav>
 
       <div class="side-footer">
-        <div class="avatar" id="avatar">P</div>
+        <div
+          class="avatar"
+          id="avatar"
+        >
+          P
+        </div>
 
         <div>
-          <strong id="userEmail">Collector</strong>
-          <button id="signOut" class="signout" type="button">
+          <strong id="userEmail">
+            Collector
+          </strong>
+
+          <button
+            id="signOut"
+            class="signout"
+            type="button"
+          >
             Sign out
           </button>
         </div>
@@ -116,16 +180,23 @@
     <main>
       <header class="topbar">
         <div>
-          <p class="eyebrow">THE RECORD ROOM</p>
+          <p class="eyebrow">
+            THE RECORD ROOM
+          </p>
+
           <h1>My Collection</h1>
         </div>
 
-        <button id="addBtn" class="primary" type="button">
+        <button
+          id="addBtn"
+          class="primary"
+          type="button"
+        >
           ＋ Add album
         </button>
       </header>
 
-      <!-- SUMMARY CARDS -->
+      <!-- DASHBOARD -->
       <section class="metrics">
         <article>
           <span>Albums</span>
@@ -152,11 +223,12 @@
         </article>
       </section>
 
-      <!-- SEARCH AND COLLECTION -->
+      <!-- COLLECTION -->
       <section class="catalog-card">
         <div class="tools">
           <div class="search-wrap">
             ⌕
+
             <input
               id="search"
               type="search"
@@ -165,11 +237,16 @@
           </div>
 
           <select id="genreFilter">
-            <option value="">All genres</option>
+            <option value="">
+              All genres
+            </option>
           </select>
 
           <select id="conditionFilter">
-            <option value="">All conditions</option>
+            <option value="">
+              All conditions
+            </option>
+
             <option>Mint (M)</option>
             <option>Near Mint (NM)</option>
             <option>Very Good Plus (VG+)</option>
@@ -181,30 +258,65 @@
           </select>
 
           <select id="collectorFilter">
-            <option value="">All collectors</option>
+            <option value="">
+              All collectors
+            </option>
           </select>
 
           <select id="sort">
-            <option value="artist">Artist A–Z</option>
-            <option value="title">Album A–Z</option>
-            <option value="year_desc">Newest first</option>
-            <option value="value_desc">Highest value</option>
-            <option value="created_desc">Recently added</option>
+            <option value="artist">
+              Artist A–Z
+            </option>
+
+            <option value="title">
+              Album A–Z
+            </option>
+
+            <option value="year_desc">
+              Newest first
+            </option>
+
+            <option value="value_desc">
+              Highest value
+            </option>
+
+            <option value="created_desc">
+              Recently added
+            </option>
           </select>
 
-          <button id="exportBtn" class="outline" type="button">
+          <button
+            id="exportBtn"
+            class="outline"
+            type="button"
+          >
             Export CSV
           </button>
         </div>
 
-        <div id="albumGrid" class="album-grid"></div>
+        <div
+          id="albumGrid"
+          class="album-grid"
+        ></div>
 
-        <div id="emptyState" class="empty">
-          <div class="empty-record">♪</div>
+        <div
+          id="emptyState"
+          class="empty"
+        >
+          <div class="empty-record">
+            ♪
+          </div>
+
           <h3>No albums found</h3>
-          <p>Add the first LP or change the filters.</p>
 
-          <button class="primary add-trigger" type="button">
+          <p>
+            Add the first LP or change the filters.
+          </p>
+
+          <button
+            class="primary add-trigger"
+            type="button"
+          >
             Add your first album
           </button>
         </div>
@@ -212,13 +324,18 @@
     </main>
   </div>
 
-  <!-- ADD AND EDIT ALBUM WINDOW -->
+  <!-- ADD/EDIT ALBUM -->
   <dialog id="albumDialog">
     <form id="albumForm" method="dialog">
       <div class="dialog-head">
         <div>
-          <span class="eyebrow">CATALOG ENTRY</span>
-          <h2 id="dialogTitle">Add an album</h2>
+          <span class="eyebrow">
+            CATALOG ENTRY
+          </span>
+
+          <h2 id="dialogTitle">
+            Add an album
+          </h2>
         </div>
 
         <button
@@ -231,11 +348,15 @@
         </button>
       </div>
 
-      <input id="albumId" type="hidden">
+      <input
+        id="albumId"
+        type="hidden"
+      >
 
       <div class="form-grid">
         <label>
           Artist *
+
           <input
             id="artist"
             required
@@ -246,6 +367,7 @@
 
         <label>
           Album title *
+
           <input
             id="title"
             required
@@ -256,6 +378,7 @@
 
         <label>
           Release year
+
           <input
             id="releaseYear"
             type="number"
@@ -267,6 +390,7 @@
 
         <label>
           Genre
+
           <input
             id="genre"
             list="genres"
@@ -296,6 +420,7 @@
 
         <label>
           Format
+
           <select id="format">
             <option>LP</option>
             <option>2×LP</option>
@@ -310,6 +435,7 @@
 
         <label>
           Record condition
+
           <select id="vinylCondition">
             <option>Mint (M)</option>
             <option selected>Near Mint (NM)</option>
@@ -324,6 +450,7 @@
 
         <label>
           Sleeve condition
+
           <select id="sleeveCondition">
             <option>Mint (M)</option>
             <option selected>Near Mint (NM)</option>
@@ -339,6 +466,7 @@
 
         <label>
           Label
+
           <input
             id="recordLabel"
             maxlength="100"
@@ -348,6 +476,7 @@
 
         <label>
           Catalog number
+
           <input
             id="catalogNumber"
             maxlength="80"
@@ -357,6 +486,7 @@
 
         <label>
           Country
+
           <input
             id="country"
             maxlength="60"
@@ -366,6 +496,7 @@
 
         <label>
           Purchase price ($)
+
           <input
             id="purchasePrice"
             type="number"
@@ -377,6 +508,7 @@
 
         <label>
           Estimated value ($)
+
           <input
             id="estimatedValue"
             type="number"
@@ -388,11 +520,16 @@
 
         <label>
           Acquired date
-          <input id="acquiredDate" type="date">
+
+          <input
+            id="acquiredDate"
+            type="date"
+          >
         </label>
 
         <label>
           Storage location
+
           <input
             id="location"
             maxlength="100"
@@ -402,14 +539,21 @@
 
         <label id="enteredByField">
           Entered by
+
           <select id="enteredBy"></select>
         </label>
 
-        <!-- ALBUM COVER UPLOAD -->
+        <!-- ALBUM COVER -->
         <div class="full cover-field">
-          <span class="field-label">Album cover</span>
+          <span class="field-label">
+            Album cover
+          </span>
 
-          <div id="coverDropZone" class="cover-drop" tabindex="0">
+          <div
+            id="coverDropZone"
+            class="cover-drop"
+            tabindex="0"
+          >
             <img
               id="coverPreview"
               class="cover-preview hidden"
@@ -417,14 +561,21 @@
             >
 
             <div id="coverPrompt">
-              <strong>Drop, paste, or upload a cover</strong>
-              <small>PNG, JPG, or WEBP — maximum 5 MB</small>
+              <strong>
+                Drop, paste, or upload a cover
+              </strong>
+
+              <small>
+                PNG, JPG, or WEBP — maximum 5 MB
+              </small>
             </div>
 
+            <!-- DIRECT IMAGE SELECTOR -->
             <button
               id="chooseCover"
               class="outline"
               type="button"
+              onclick="document.getElementById('coverFile').click()"
             >
               Choose image
             </button>
@@ -432,13 +583,15 @@
             <input
               id="coverFile"
               type="file"
-              accept="image/png,image/jpeg,image/webp"
+              accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
               hidden
             >
           </div>
 
           <div class="cover-options">
-            <span>or use an image URL</span>
+            <span>
+              or use an image URL
+            </span>
 
             <input
               id="coverUrl"
@@ -458,6 +611,7 @@
 
         <label class="full">
           Notes
+
           <textarea
             id="notes"
             rows="3"
@@ -468,11 +622,18 @@
       </div>
 
       <div class="dialog-actions">
-        <button id="cancelBtn" class="outline" type="button">
+        <button
+          id="cancelBtn"
+          class="outline"
+          type="button"
+        >
           Cancel
         </button>
 
-        <button class="primary" type="submit">
+        <button
+          class="primary"
+          type="submit"
+        >
           Save album
         </button>
       </div>
@@ -480,6 +641,6 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
