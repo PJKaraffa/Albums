@@ -327,25 +327,30 @@ function filteredAlbums() {
 }
 
 function render() {
+  // This list reflects all active filters,
+  // including the selected collector.
   const list = filteredAlbums();
 
-  const totalValue = albums.reduce(
+  const totalValue = list.reduce(
     (total, album) =>
       total + Number(album.estimated_value || 0),
     0
   );
 
-  const grades = albums
+  const grades = list
     .map(album =>
       conditions.indexOf(album.vinyl_condition)
     )
     .filter(index => index >= 0);
 
-  $('albumCount').textContent = albums.length;
-  $('totalValue').textContent = money(totalValue);
+  // Dashboard totals now use the filtered albums.
+  $('albumCount').textContent = list.length;
+
+  $('totalValue').textContent =
+    money(totalValue);
 
   $('genreCount').textContent = new Set(
-    albums
+    list
       .map(album => album.genre)
       .filter(Boolean)
   ).size;
@@ -439,7 +444,11 @@ function render() {
             <div class="tags">
               ${
                 album.genre
-                  ? `<span class="tag">${safe(album.genre)}</span>`
+                  ? `
+                    <span class="tag">
+                      ${safe(album.genre)}
+                    </span>
+                  `
                   : ''
               }
 
@@ -474,19 +483,6 @@ function render() {
     })
     .join('');
 }
-
-[
-  'search',
-  'genreFilter',
-  'conditionFilter',
-  'collectorFilter',
-  'sort'
-].forEach(id => {
-  $(id).addEventListener(
-    id === 'search' ? 'input' : 'change',
-    render
-  );
-});
 
 function showCoverPreview(source = '') {
   const image = $('coverPreview');
