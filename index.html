@@ -10,7 +10,7 @@
 
   <meta
     name="description"
-    content="Search, organize, and value the Karaffa family vinyl collection."
+    content="The Karaffa family vinyl record collection."
   >
 
   <title>Karaffa Vault | LP Collection</title>
@@ -31,15 +31,8 @@
     rel="stylesheet"
   >
 
-  <link
-    rel="stylesheet"
-    href="styles.css?v=8"
-  >
-
-  <link
-    rel="stylesheet"
-    href="cover-upload.css?v=8"
-  >
+  <link rel="stylesheet" href="styles.css?v=10">
+  <link rel="stylesheet" href="cover-upload.css?v=10">
 </head>
 
 <body>
@@ -50,16 +43,11 @@
     aria-live="polite"
   ></div>
 
-  <!-- LOGIN PAGE -->
-  <section
-    id="authView"
-    class="auth-shell"
-  >
+  <!-- LOGIN -->
+  <section id="authView" class="auth-shell">
     <div class="auth-art">
       <div class="record">
-        <div class="label">
-          KV
-        </div>
+        <div class="label">KV</div>
       </div>
 
       <h1>Karaffa Vault</h1>
@@ -69,10 +57,7 @@
       </p>
     </div>
 
-    <form
-      id="authForm"
-      class="auth-card"
-    >
+    <form id="authForm" class="auth-card">
       <span class="eyebrow">
         VINYL COLLECTION MANAGER
       </span>
@@ -97,10 +82,7 @@
         >
       </label>
 
-      <label
-        id="usernameField"
-        class="hidden"
-      >
+      <label id="usernameField" class="hidden">
         Username
 
         <input
@@ -144,15 +126,9 @@
   </section>
 
   <!-- MAIN APPLICATION -->
-  <div
-    id="appView"
-    class="app hidden"
-  >
+  <div id="appView" class="app hidden">
     <aside class="sidebar">
-      <a
-        class="brand"
-        href="#"
-      >
+      <a class="brand" href="#">
         <span class="mini-record"></span>
         <span>Karaffa Vault</span>
       </a>
@@ -175,10 +151,7 @@
       </nav>
 
       <div class="side-footer">
-        <div
-          class="avatar"
-          id="avatar"
-        >
+        <div class="avatar" id="avatar">
           P
         </div>
 
@@ -217,60 +190,35 @@
         </button>
       </header>
 
-      <!-- DASHBOARD TOTALS -->
+      <!-- TOTALS -->
       <section class="metrics">
         <article>
           <span>Albums</span>
-
-          <strong id="albumCount">
-            0
-          </strong>
-
-          <small>
-            in the selected collection
-          </small>
+          <strong id="albumCount">0</strong>
+          <small>in the selected collection</small>
         </article>
 
         <article>
           <span>Estimated value</span>
-
-          <strong id="totalValue">
-            $0
-          </strong>
-
-          <small>
-            selected collection value
-          </small>
+          <strong id="totalValue">$0</strong>
+          <small>selected collection value</small>
         </article>
 
         <article>
           <span>Genres</span>
-
-          <strong id="genreCount">
-            0
-          </strong>
-
-          <small>
-            in the selected collection
-          </small>
+          <strong id="genreCount">0</strong>
+          <small>in the selected collection</small>
         </article>
 
         <article>
           <span>Average condition</span>
-
-          <strong id="avgCondition">
-            —
-          </strong>
-
-          <small>
-            selected vinyl grade
-          </small>
+          <strong id="avgCondition">—</strong>
+          <small>selected vinyl grade</small>
         </article>
       </section>
 
-      <!-- COLLECTION AREA -->
+      <!-- COLLECTION -->
       <section class="catalog-card">
-        <!-- SEARCH AND FILTERS -->
         <div class="tools">
           <div class="search-wrap">
             ⌕
@@ -279,23 +227,16 @@
               id="search"
               type="search"
               placeholder="Search artist, album, label, catalog number, or collector…"
-              oninput="render()"
             >
           </div>
 
-          <select
-            id="genreFilter"
-            onchange="render()"
-          >
+          <select id="genreFilter">
             <option value="">
               All genres
             </option>
           </select>
 
-          <select
-            id="conditionFilter"
-            onchange="render()"
-          >
+          <select id="conditionFilter">
             <option value="">
               All conditions
             </option>
@@ -333,19 +274,13 @@
             </option>
           </select>
 
-          <select
-            id="collectorFilter"
-            onchange="render()"
-          >
+          <select id="collectorFilter">
             <option value="">
               All collectors
             </option>
           </select>
 
-          <select
-            id="sort"
-            onchange="render()"
-          >
+          <select id="sort">
             <option value="artist">
               Artist A–Z
             </option>
@@ -376,20 +311,16 @@
           </button>
         </div>
 
-        <!-- ALBUM CARDS -->
         <div
           id="albumGrid"
           class="album-grid"
         ></div>
 
-        <!-- EMPTY COLLECTION -->
         <div
           id="emptyState"
           class="empty"
         >
-          <div class="empty-record">
-            ♪
-          </div>
+          <div class="empty-record">♪</div>
 
           <h3>No albums found</h3>
 
@@ -408,12 +339,9 @@
     </main>
   </div>
 
-  <!-- ADD/EDIT ALBUM WINDOW -->
+  <!-- ADD/EDIT ALBUM -->
   <dialog id="albumDialog">
-    <form
-      id="albumForm"
-      method="dialog"
-    >
+    <form id="albumForm" method="dialog">
       <div class="dialog-head">
         <div>
           <span class="eyebrow">
@@ -426,8 +354,8 @@
         </div>
 
         <button
-          class="icon-btn"
           id="closeDialog"
+          class="icon-btn"
           type="button"
           aria-label="Close"
         >
@@ -435,10 +363,7 @@
         </button>
       </div>
 
-      <input
-        id="albumId"
-        type="hidden"
-      >
+      <input id="albumId" type="hidden">
 
       <div class="form-grid">
         <label>
@@ -793,7 +718,6 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>
