@@ -1,4 +1,6 @@
-const SUPABASE_URL = 'https://relmecpdjifmlmeyubof.supabase.co';
+const SUPABASE_URL =
+  'https://relmecpdjifmlmeyubof.supabase.co';
+
 const SUPABASE_ANON_KEY =
   'sb_publishable_6v7O6VP7oeT5hkxzeGGgGw_QZGWVmXA';
 
@@ -14,6 +16,7 @@ let profiles = [];
 let currentUser = null;
 let signUpMode = false;
 let pendingCoverFile = null;
+let coverPreviewObjectUrl = null;
 
 const conditions = [
   'Poor (P)',
@@ -26,191 +29,325 @@ const conditions = [
   'Mint (M)'
 ];
 
-function toast(message, error = false) {
+/* =========================================
+   GENERAL HELPERS
+========================================= */
+
+function toast(message, isError = false) {
   const element = $('toast');
 
   element.textContent = message;
-  element.className = `toast show${error ? ' error' : ''}`;
 
-  setTimeout(() => {
+  element.className = isError
+    ? 'toast show error'
+    : 'toast show';
+
+  window.setTimeout(() => {
     element.className = 'toast';
   }, 3000);
 }
 
 function money(value) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 2
-  }).format(Number(value) || 0);
+  return new Intl.NumberFormat(
+    'en-US',
+    {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 2
+    }
+  ).format(Number(value) || 0);
 }
 
 function safe(value = '') {
   return String(value).replace(
     /[&<>'"]/g,
-    character => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      "'": '&#39;',
-      '"': '&quot;'
-    })[character]
+    character => {
+      const replacements = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      };
+
+      return replacements[character];
+    }
   );
 }
 
+function creatorName(userId) {
+  const profile = profiles.find(
+    item => item.id === userId
+  );
+
+  return profile?.username || 'Unknown';
+}
+
+/* =========================================
+   START APPLICATION
+========================================= */
+
 async function start() {
   const {
-    data: { session }
+    data: { session },
+    error
   } = await db.auth.getSession();
+
+  if (error) {
+    toast(error.message, true);
+    return;
+  }
 
   await updateSession(session);
 
-  db.auth.onAuthStateChange((_event, newSession) => {
-    updateSession(newSession);
-  });
+  db.auth.onAuthStateChange(
+    (_event, newSession) => {
+      window.setTimeout(() => {
+        updateSession(newSession);
+      }, 0);
+    }
+  );
 }
 
-async function updateSession(session) {
-  $('authView').classList.toggle('hidden', Boolean(session));
-  $('appView').classList.toggle('hidden', !session);
+/* =========================================
+   AUTHENTICATION
+========================================= */
 
-  if (!session) {
+async function updateSession(session) {
+  const signedIn = Boolean(session);
+
+  $('authView').classList.toggle(
+    'hidden',
+    signedIn
+  );
+
+  $('appView').classList.toggle(
+    'hidden',
+    !signedIn
+  );
+
+  if (!signedIn) {
     currentUser = null;
+    albums = [];
+    profiles = [];
     return;
   }
 
   currentUser = session.user;
 
-  await ensureProfile(session.user);
-
-  const name = creatorName(session.user.id);
-
-  $('userEmail').textContent = name;
-  $('avatar').textContent = name.charAt(0).toUpperCase();
-
+  await ensureProfile(currentUser);
   await loadAlbums();
+
+  const displayName =
+    creatorName(currentUser.id) ||
+    currentUser.email;
+
+  $('userEmail').textContent =
+    displayName;
+
+  $('avatar').textContent =
+    displayName
+      .charAt(0)
+      .toUpperCase();
 }
 
-$('authForm').addEventListener('submit', async event => {
-  event.preventDefault();
+$('authForm').addEventListener(
+  'submit',
+  async event => {
+    event.preventDefault();
 
-  const credentials = {
-    email: $('email').value,
-    password: $('password').value
-  };
+    const email =
+      $('email').value.trim();
 
-  if (signUpMode) {
-    credentials.options = {
-      data: {
-        username: $('username').value.trim()
+    const password =
+      $('password').value;
+
+    if (signUpMode) {
+      const username =
+        $('username').value.trim();
+
+      if (!username) {
+        toast(
+          'Please enter a username.',
+          true
+        );
+
+        return;
       }
-    };
+
+      const { error } =
+        await db.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              username
+            }
+          }
+        });
+
+      if (error) {
+        toast(error.message, true);
+        return;
+      }
+
+      toast(
+        'Account created. Check your email if confirmation is enabled.'
+      );
+
+      return;
+    }
+
+    const { error } =
+      await db.auth.signInWithPassword({
+        email,
+        password
+      });
+
+    if (error) {
+      toast(error.message, true);
+    }
   }
+);
 
-  const result = signUpMode
-    ? await db.auth.signUp(credentials)
-    : await db.auth.signInWithPassword(credentials);
+$('toggleAuth').addEventListener(
+  'click',
+  () => {
+    signUpMode = !signUpMode;
 
-  if (result.error) {
-    toast(result.error.message, true);
+    $('usernameField').classList.toggle(
+      'hidden',
+      !signUpMode
+    );
+
+    $('username').required =
+      signUpMode;
+
+    $('authTitle').textContent =
+      signUpMode
+        ? 'Create your account'
+        : 'Welcome back';
+
+    $('authCopy').textContent =
+      signUpMode
+        ? 'Join the Karaffa family collection.'
+        : 'Sign in to open the Karaffa Vault.';
+
+    $('authSubmit').textContent =
+      signUpMode
+        ? 'Create account'
+        : 'Sign in';
+
+    $('toggleAuth').textContent =
+      signUpMode
+        ? 'Already have an account? Sign in'
+        : 'New here? Create an account';
+  }
+);
+
+$('signOut').addEventListener(
+  'click',
+  async () => {
+    const { error } =
+      await db.auth.signOut();
+
+    if (error) {
+      toast(error.message, true);
+    }
+  }
+);
+
+/* =========================================
+   USER PROFILES
+========================================= */
+
+async function ensureProfile(user) {
+  const {
+    data: existingProfile,
+    error: profileError
+  } = await db
+    .from('profiles')
+    .select('id, username')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    toast(profileError.message, true);
     return;
   }
 
-  if (signUpMode) {
-    toast(
-      'Account created. Check your email if confirmation is enabled.'
-    );
+  if (!existingProfile) {
+    const username =
+      user.user_metadata?.username ||
+      user.email.split('@')[0];
+
+    const { error: insertError } =
+      await db
+        .from('profiles')
+        .insert({
+          id: user.id,
+          username
+        });
+
+    if (insertError) {
+      toast(insertError.message, true);
+    }
   }
-});
-
-$('toggleAuth').onclick = () => {
-  signUpMode = !signUpMode;
-
-  $('usernameField').classList.toggle(
-    'hidden',
-    !signUpMode
-  );
-
-  $('username').required = signUpMode;
-
-  $('authTitle').textContent = signUpMode
-    ? 'Create your account'
-    : 'Welcome back';
-
-  $('authCopy').textContent = signUpMode
-    ? 'Join the Karaffa family collection.'
-    : 'Sign in to open the Karaffa Vault.';
-
-  $('authSubmit').textContent = signUpMode
-    ? 'Create account'
-    : 'Sign in';
-
-  $('toggleAuth').textContent = signUpMode
-    ? 'Already have an account? Sign in'
-    : 'New here? Create an account';
-};
-
-$('signOut').onclick = () => db.auth.signOut();
-
-async function ensureProfile(user) {
-  const username =
-    user.user_metadata?.username ||
-    user.email.split('@')[0];
-
-  await db
-    .from('profiles')
-    .upsert(
-      {
-        id: user.id,
-        username
-      },
-      {
-        onConflict: 'id'
-      }
-    );
-
-  const { data } = await db
-    .from('profiles')
-    .select('*');
-
-  profiles = data || [];
 }
 
-function creatorName(userId) {
-  return (
-    profiles.find(profile => profile.id === userId)
-      ?.username || 'Unknown'
-  );
-}
+/* =========================================
+   LOAD COLLECTION
+========================================= */
 
 async function loadAlbums() {
-  const [albumResult, profileResult] =
-    await Promise.all([
-      db
-        .from('albums')
-        .select('*')
-        .order('artist'),
+  const [
+    albumResult,
+    profileResult
+  ] = await Promise.all([
+    db
+      .from('albums')
+      .select('*')
+      .order('artist'),
 
-      db
-        .from('profiles')
-        .select('*')
-    ]);
+    db
+      .from('profiles')
+      .select('id, username')
+      .order('username')
+  ]);
 
   if (albumResult.error) {
-    toast(albumResult.error.message, true);
+    toast(
+      albumResult.error.message,
+      true
+    );
+
+    return;
+  }
+
+  if (profileResult.error) {
+    toast(
+      profileResult.error.message,
+      true
+    );
+
     return;
   }
 
   albums = albumResult.data || [];
-  profiles = profileResult.data || profiles;
+  profiles = profileResult.data || [];
 
   populateGenres();
   populateCollectors();
   render();
 }
 
+/* =========================================
+   FILTER DROPDOWNS
+========================================= */
+
 function populateGenres() {
-  const current = $('genreFilter').value;
+  const selectedGenre =
+    $('genreFilter').value;
 
   const genres = [
     ...new Set(
@@ -218,277 +355,464 @@ function populateGenres() {
         .map(album => album.genre)
         .filter(Boolean)
     )
-  ].sort();
+  ].sort((first, second) =>
+    first.localeCompare(second)
+  );
 
   $('genreFilter').innerHTML =
     '<option value="">All genres</option>' +
     genres
-      .map(genre => `<option>${safe(genre)}</option>`)
+      .map(genre => {
+        return `
+          <option value="${safe(genre)}">
+            ${safe(genre)}
+          </option>
+        `;
+      })
       .join('');
 
-  $('genreFilter').value = current;
+  if (genres.includes(selectedGenre)) {
+    $('genreFilter').value =
+      selectedGenre;
+  }
 }
 
 function populateCollectors() {
-  const current = $('collectorFilter').value;
+  const selectedCollector =
+    $('collectorFilter').value;
 
   const collectors = [
     ...new Set(
-      albums.map(album => creatorName(album.user_id))
+      albums.map(album =>
+        creatorName(album.user_id)
+      )
     )
-  ].sort();
+  ].sort((first, second) =>
+    first.localeCompare(second)
+  );
 
   $('collectorFilter').innerHTML =
     '<option value="">All collectors</option>' +
     collectors
-      .map(name => `<option>${safe(name)}</option>`)
+      .map(collector => {
+        return `
+          <option value="${safe(collector)}">
+            ${safe(collector)}
+          </option>
+        `;
+      })
       .join('');
 
-  $('collectorFilter').value = current;
+  if (
+    collectors.includes(
+      selectedCollector
+    )
+  ) {
+    $('collectorFilter').value =
+      selectedCollector;
+  }
 }
+
+/* =========================================
+   FILTER AND SORT ALBUMS
+========================================= */
 
 function filteredAlbums() {
-  const query = $('search')
-    .value
-    .trim()
-    .toLowerCase();
+  const query =
+    $('search')
+      .value
+      .trim()
+      .toLowerCase();
 
-  const genre = $('genreFilter').value;
-  const condition = $('conditionFilter').value;
-  const collector = $('collectorFilter').value;
+  const selectedGenre =
+    $('genreFilter').value;
 
-  const filtered = albums.filter(album => {
-    const searchableFields = [
-      album.artist,
-      album.title,
-      album.record_label,
-      album.catalog_number,
-      album.notes,
-      creatorName(album.user_id)
-    ];
+  const selectedCondition =
+    $('conditionFilter').value;
 
-    const matchesQuery =
-      !query ||
-      searchableFields.some(value =>
-        String(value || '')
-          .toLowerCase()
-          .includes(query)
-      );
+  const selectedCollector =
+    $('collectorFilter').value;
 
-    const matchesGenre =
-      !genre || album.genre === genre;
+  const selectedSort =
+    $('sort').value;
 
-    const matchesCondition =
-      !condition ||
-      album.vinyl_condition === condition;
+  const filtered = albums.filter(
+    album => {
+      const collector =
+        creatorName(album.user_id);
 
-    const matchesCollector =
-      !collector ||
-      creatorName(album.user_id) === collector;
+      const searchableValues = [
+        album.artist,
+        album.title,
+        album.record_label,
+        album.catalog_number,
+        album.country,
+        album.genre,
+        album.notes,
+        collector
+      ];
 
-    return (
-      matchesQuery &&
-      matchesGenre &&
-      matchesCondition &&
-      matchesCollector
-    );
-  });
+      const matchesSearch =
+        !query ||
+        searchableValues.some(value =>
+          String(value || '')
+            .toLowerCase()
+            .includes(query)
+        );
 
-  const sort = $('sort').value;
+      const matchesGenre =
+        !selectedGenre ||
+        album.genre === selectedGenre;
 
-  return filtered.sort((first, second) => {
-    if (sort === 'title') {
-      return first.title.localeCompare(second.title);
-    }
+      const matchesCondition =
+        !selectedCondition ||
+        album.vinyl_condition ===
+          selectedCondition;
 
-    if (sort === 'year_desc') {
+      const matchesCollector =
+        !selectedCollector ||
+        collector === selectedCollector;
+
       return (
-        (second.release_year || 0) -
-        (first.release_year || 0)
+        matchesSearch &&
+        matchesGenre &&
+        matchesCondition &&
+        matchesCollector
       );
     }
-
-    if (sort === 'value_desc') {
-      return (
-        (second.estimated_value || 0) -
-        (first.estimated_value || 0)
-      );
-    }
-
-    if (sort === 'created_desc') {
-      return (
-        new Date(second.created_at) -
-        new Date(first.created_at)
-      );
-    }
-
-    return first.artist.localeCompare(second.artist);
-  });
-}
-
-function render() {
-  // This list reflects all active filters,
-  // including the selected collector.
-  const list = filteredAlbums();
-
-  const totalValue = list.reduce(
-    (total, album) =>
-      total + Number(album.estimated_value || 0),
-    0
   );
 
-  const grades = list
-    .map(album =>
-      conditions.indexOf(album.vinyl_condition)
-    )
-    .filter(index => index >= 0);
+  return filtered.sort(
+    (first, second) => {
+      if (selectedSort === 'title') {
+        return String(first.title)
+          .localeCompare(
+            String(second.title)
+          );
+      }
 
-  // Dashboard totals now use the filtered albums.
-  $('albumCount').textContent = list.length;
+      if (
+        selectedSort === 'year_desc'
+      ) {
+        return (
+          Number(
+            second.release_year || 0
+          ) -
+          Number(
+            first.release_year || 0
+          )
+        );
+      }
+
+      if (
+        selectedSort === 'value_desc'
+      ) {
+        return (
+          Number(
+            second.estimated_value || 0
+          ) -
+          Number(
+            first.estimated_value || 0
+          )
+        );
+      }
+
+      if (
+        selectedSort === 'created_desc'
+      ) {
+        return (
+          new Date(second.created_at) -
+          new Date(first.created_at)
+        );
+      }
+
+      return String(first.artist)
+        .localeCompare(
+          String(second.artist)
+        );
+    }
+  );
+}
+
+/* =========================================
+   DISPLAY COLLECTION
+========================================= */
+
+function render() {
+  const visibleAlbums =
+    filteredAlbums();
+
+  const totalEstimatedValue =
+    visibleAlbums.reduce(
+      (total, album) => {
+        return (
+          total +
+          Number(
+            album.estimated_value || 0
+          )
+        );
+      },
+      0
+    );
+
+  const visibleGenres =
+    new Set(
+      visibleAlbums
+        .map(album => album.genre)
+        .filter(Boolean)
+    );
+
+  const gradeNumbers =
+    visibleAlbums
+      .map(album => {
+        return conditions.indexOf(
+          album.vinyl_condition
+        );
+      })
+      .filter(index => index >= 0);
+
+  $('albumCount').textContent =
+    visibleAlbums.length;
 
   $('totalValue').textContent =
-    money(totalValue);
+    money(totalEstimatedValue);
 
-  $('genreCount').textContent = new Set(
-    list
-      .map(album => album.genre)
-      .filter(Boolean)
-  ).size;
+  $('genreCount').textContent =
+    visibleGenres.size;
 
-  if (grades.length) {
-    const average =
-      grades.reduce(
-        (total, grade) => total + grade,
+  if (gradeNumbers.length > 0) {
+    const gradeTotal =
+      gradeNumbers.reduce(
+        (total, grade) =>
+          total + grade,
         0
-      ) / grades.length;
+      );
 
-    const averageCondition =
-      conditions[Math.round(average)];
+    const averageGrade =
+      gradeTotal /
+      gradeNumbers.length;
+
+    const conditionName =
+      conditions[
+        Math.round(averageGrade)
+      ];
+
+    const conditionMatch =
+      conditionName.match(
+        /\((.*?)\)/
+      );
 
     $('avgCondition').textContent =
-      averageCondition.match(/\((.*?)\)/)?.[1] ||
-      '—';
+      conditionMatch
+        ? conditionMatch[1]
+        : '—';
   } else {
-    $('avgCondition').textContent = '—';
+    $('avgCondition').textContent =
+      '—';
   }
 
   $('emptyState').classList.toggle(
     'hidden',
-    list.length > 0
+    visibleAlbums.length > 0
   );
 
-  $('albumGrid').innerHTML = list
-    .map(album => {
-      const condition =
-        (album.vinyl_condition || '')
-          .match(/\((.*?)\)/)?.[1] || '—';
+  $('albumGrid').innerHTML =
+    visibleAlbums
+      .map(album => {
+        return buildAlbumCard(album);
+      })
+      .join('');
+}
 
-      const ownerControls =
-        album.user_id === currentUser?.id
-          ? `
-            <button
-              onclick="editAlbum('${album.id}')"
-              title="Edit"
-            >
-              ✎
-            </button>
+function buildAlbumCard(album) {
+  const conditionMatch =
+    String(
+      album.vinyl_condition || ''
+    ).match(/\((.*?)\)/);
 
-            <button
-              class="delete"
-              onclick="deleteAlbum('${album.id}')"
-              title="Delete"
-            >
-              ⌫
-            </button>
-          `
-          : '';
+  const shortCondition =
+    conditionMatch
+      ? conditionMatch[1]
+      : '—';
 
-      const cover = album.cover_url
-        ? `
-          <img
-            src="${safe(album.cover_url)}"
-            alt="Cover of ${safe(album.title)}"
-            loading="lazy"
-            onerror="
-              this.replaceWith(
-                Object.assign(
-                  document.createElement('div'),
-                  { className: 'cover-placeholder' }
-                )
+  const coverImage =
+    album.cover_url
+      ? `
+        <img
+          src="${safe(album.cover_url)}"
+          alt="Cover of ${safe(album.title)}"
+          loading="lazy"
+          onerror="
+            this.replaceWith(
+              Object.assign(
+                document.createElement('div'),
+                {
+                  className:
+                    'cover-placeholder'
+                }
               )
-            "
-          >
-        `
-        : '<div class="cover-placeholder"></div>';
-
-      return `
-        <article class="album-card">
-          <div class="cover">
-            ${cover}
-          </div>
-
-          <div class="card-body">
-            <h3 title="${safe(album.title)}">
-              ${safe(album.title)}
-            </h3>
-
-            <p class="artist">
-              ${safe(album.artist)}
-              ${
-                album.release_year
-                  ? ` · ${album.release_year}`
-                  : ''
-              }
-            </p>
-
-            <div class="tags">
-              ${
-                album.genre
-                  ? `
-                    <span class="tag">
-                      ${safe(album.genre)}
-                    </span>
-                  `
-                  : ''
-              }
-
-              <span class="tag">
-                ${safe(album.format || 'LP')}
-              </span>
-
-              <span class="tag">
-                ${safe(condition)}
-              </span>
-            </div>
-
-            <p class="entered-by">
-              Entered by
-              <strong>
-                ${safe(creatorName(album.user_id))}
-              </strong>
-            </p>
-
-            <div class="card-meta">
-              <span class="value">
-                ${money(album.estimated_value)}
-              </span>
-
-              <div class="card-actions">
-                ${ownerControls}
-              </div>
-            </div>
-          </div>
-        </article>
+            )
+          "
+        >
+      `
+      : `
+        <div
+          class="cover-placeholder"
+        ></div>
       `;
-    })
-    .join('');
+
+  const ownerControls =
+    album.user_id === currentUser?.id
+      ? `
+        <button
+          type="button"
+          onclick="editAlbum('${album.id}')"
+          title="Edit album"
+          aria-label="Edit album"
+        >
+          ✎
+        </button>
+
+        <button
+          type="button"
+          class="delete"
+          onclick="deleteAlbum('${album.id}')"
+          title="Delete album"
+          aria-label="Delete album"
+        >
+          ⌫
+        </button>
+      `
+      : '';
+
+  return `
+    <article class="album-card">
+      <div class="cover">
+        ${coverImage}
+      </div>
+
+      <div class="card-body">
+        <h3 title="${safe(album.title)}">
+          ${safe(album.title)}
+        </h3>
+
+        <p class="artist">
+          ${safe(album.artist)}
+          ${
+            album.release_year
+              ? ` · ${album.release_year}`
+              : ''
+          }
+        </p>
+
+        <div class="tags">
+          ${
+            album.genre
+              ? `
+                <span class="tag">
+                  ${safe(album.genre)}
+                </span>
+              `
+              : ''
+          }
+
+          <span class="tag">
+            ${safe(
+              album.format || 'LP'
+            )}
+          </span>
+
+          <span class="tag">
+            ${safe(shortCondition)}
+          </span>
+        </div>
+
+        <p class="entered-by">
+          Entered by
+          <strong>
+            ${safe(
+              creatorName(
+                album.user_id
+              )
+            )}
+          </strong>
+        </p>
+
+        <div class="card-meta">
+          <span class="value">
+            ${money(
+              album.estimated_value
+            )}
+          </span>
+
+          <div class="card-actions">
+            ${ownerControls}
+          </div>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+/* =========================================
+   SEARCH AND FILTER EVENTS
+========================================= */
+
+[
+  'search',
+  'genreFilter',
+  'conditionFilter',
+  'collectorFilter',
+  'sort'
+].forEach(id => {
+  const element = $(id);
+
+  if (!element) {
+    console.error(
+      `Missing HTML element: #${id}`
+    );
+
+    return;
+  }
+
+  const eventName =
+    id === 'search'
+      ? 'input'
+      : 'change';
+
+  element.addEventListener(
+    eventName,
+    render
+  );
+});
+
+/* =========================================
+   ALBUM COVER
+========================================= */
+
+function clearObjectUrl() {
+  if (coverPreviewObjectUrl) {
+    URL.revokeObjectURL(
+      coverPreviewObjectUrl
+    );
+
+    coverPreviewObjectUrl = null;
+  }
 }
 
 function showCoverPreview(source = '') {
-  const image = $('coverPreview');
+  const image =
+    $('coverPreview');
 
-  image.classList.toggle('hidden', !source);
-  $('coverPrompt').classList.toggle(
+  const prompt =
+    $('coverPrompt');
+
+  image.classList.toggle(
+    'hidden',
+    !source
+  );
+
+  prompt.classList.toggle(
     'hidden',
     Boolean(source)
   );
@@ -511,204 +835,151 @@ function selectCover(file) {
     'image/webp'
   ];
 
-  if (!allowedTypes.includes(file.type)) {
+  if (
+    !allowedTypes.includes(file.type)
+  ) {
     toast(
-      'Please choose a PNG, JPG, or WEBP image.',
+      'Please choose a JPG, PNG, or WEBP image.',
       true
     );
+
     return;
   }
 
-  if (file.size > 5 * 1024 * 1024) {
+  const maximumSize =
+    5 * 1024 * 1024;
+
+  if (file.size > maximumSize) {
     toast(
       'Cover images must be 5 MB or smaller.',
       true
     );
+
     return;
   }
 
+  clearObjectUrl();
+
   pendingCoverFile = file;
+
   $('coverUrl').value = '';
 
+  coverPreviewObjectUrl =
+    URL.createObjectURL(file);
+
   showCoverPreview(
-    URL.createObjectURL(file)
+    coverPreviewObjectUrl
   );
 }
 
 async function uploadCover(userId) {
   if (!pendingCoverFile) {
-    return $('coverUrl').value.trim() || null;
+    return (
+      $('coverUrl').value.trim() ||
+      null
+    );
   }
 
+  const fileName =
+    pendingCoverFile.name || '';
+
   const originalExtension =
-    pendingCoverFile.name.split('.').pop();
+    fileName.includes('.')
+      ? fileName.split('.').pop()
+      : '';
 
-  const extension = (
+  const mimeExtension =
+    pendingCoverFile.type
+      .split('/')
+      .pop();
+
+  const extension = String(
     originalExtension ||
-    pendingCoverFile.type.split('/')[1] ||
+    mimeExtension ||
     'jpg'
-  ).replace(/[^a-z0-9]/gi, '');
-
-  const path =
-    `${userId}/${crypto.randomUUID()}.${extension}`;
-
-  const { error } = await db.storage
-    .from('album-covers')
-    .upload(
-      path,
-      pendingCoverFile,
-      {
-        contentType: pendingCoverFile.type,
-        upsert: false
-      }
+  )
+    .toLowerCase()
+    .replace(
+      /[^a-z0-9]/g,
+      ''
     );
+
+  const storagePath =
+    `${userId}/` +
+    `${crypto.randomUUID()}.` +
+    extension;
+
+  const { error } =
+    await db.storage
+      .from('album-covers')
+      .upload(
+        storagePath,
+        pendingCoverFile,
+        {
+          contentType:
+            pendingCoverFile.type,
+
+          cacheControl: '3600',
+          upsert: false
+        }
+      );
 
   if (error) {
     throw error;
   }
 
-  const { data } = db.storage
-    .from('album-covers')
-    .getPublicUrl(path);
+  const { data } =
+    db.storage
+      .from('album-covers')
+      .getPublicUrl(storagePath);
 
   return data.publicUrl;
 }
 
-function openDialog(album = {}) {
-  $('albumForm').reset();
-
-  pendingCoverFile = null;
-
-  $('albumId').value = album.id || '';
-
-  $('dialogTitle').textContent =
-    album.id
-      ? 'Edit album'
-      : 'Add an album';
-
-  $('enteredBy').innerHTML = profiles
-    .slice()
-    .sort((first, second) =>
-      first.username.localeCompare(
-        second.username
-      )
-    )
-    .map(
-      profile =>
-        `<option value="${profile.id}">
-          ${safe(profile.username)}
-        </option>`
-    )
-    .join('');
-
-  $('enteredBy').value =
-    album.user_id || currentUser.id;
-
-  const fieldMap = {
-    artist: 'artist',
-    title: 'title',
-    releaseYear: 'release_year',
-    genre: 'genre',
-    format: 'format',
-    vinylCondition: 'vinyl_condition',
-    sleeveCondition: 'sleeve_condition',
-    recordLabel: 'record_label',
-    catalogNumber: 'catalog_number',
-    country: 'country',
-    purchasePrice: 'purchase_price',
-    estimatedValue: 'estimated_value',
-    acquiredDate: 'acquired_date',
-    location: 'location',
-    coverUrl: 'cover_url',
-    notes: 'notes'
-  };
-
-  Object.entries(fieldMap).forEach(
-    ([elementId, databaseField]) => {
-      if (album[databaseField] != null) {
-        $(elementId).value =
-          album[databaseField];
-      }
-    }
-  );
-
-  showCoverPreview(album.cover_url || '');
-
-  $('albumDialog').showModal();
-}
-
-window.editAlbum = id => {
-  openDialog(
-    albums.find(album => album.id === id)
-  );
-};
-
-window.deleteAlbum = async id => {
-  const confirmed = confirm(
-    'Remove this album from the collection?'
-  );
-
-  if (!confirmed) {
-    return;
-  }
-
-  const { error } = await db
-    .from('albums')
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    toast(error.message, true);
-    return;
-  }
-
-  toast('Album removed');
-
-  await loadAlbums();
-};
-
-[
-  $('addBtn'),
-  $('addNav'),
-  ...document.querySelectorAll('.add-trigger')
-].forEach(button => {
-  button.onclick = () => openDialog();
-});
-
-$('closeDialog').onclick = () =>
-  $('albumDialog').close();
-
-$('cancelBtn').onclick = () =>
-  $('albumDialog').close();
-
-$('chooseCover').onclick = () =>
-  $('coverFile').click();
-
-$('coverDropZone').onclick = event => {
-  if (
-    event.target.id === 'coverDropZone' ||
-    event.target.id === 'coverPrompt'
-  ) {
+$('chooseCover').addEventListener(
+  'click',
+  () => {
     $('coverFile').click();
   }
-};
+);
 
-$('coverFile').onchange = event => {
-  selectCover(event.target.files[0]);
-};
+$('coverFile').addEventListener(
+  'change',
+  event => {
+    const file =
+      event.target.files?.[0];
+
+    selectCover(file);
+  }
+);
+
+$('coverDropZone').addEventListener(
+  'click',
+  event => {
+    const clickedButton =
+      event.target.closest(
+        '#chooseCover'
+      );
+
+    if (!clickedButton) {
+      $('coverFile').click();
+    }
+  }
+);
 
 [
   'dragenter',
   'dragover'
-].forEach(eventType => {
+].forEach(eventName => {
   $('coverDropZone').addEventListener(
-    eventType,
+    eventName,
     event => {
       event.preventDefault();
 
-      $('coverDropZone').classList.add(
-        'dragging'
-      );
+      $('coverDropZone')
+        .classList.add(
+          'dragging'
+        );
     }
   );
 });
@@ -716,61 +987,262 @@ $('coverFile').onchange = event => {
 [
   'dragleave',
   'drop'
-].forEach(eventType => {
+].forEach(eventName => {
   $('coverDropZone').addEventListener(
-    eventType,
+    eventName,
     event => {
       event.preventDefault();
 
-      $('coverDropZone').classList.remove(
-        'dragging'
-      );
-
-      if (eventType === 'drop') {
-        selectCover(
-          event.dataTransfer.files[0]
+      $('coverDropZone')
+        .classList.remove(
+          'dragging'
         );
+
+      if (eventName === 'drop') {
+        const file =
+          event.dataTransfer
+            .files?.[0];
+
+        selectCover(file);
       }
     }
   );
 });
 
-document.addEventListener('paste', event => {
-  if (!$('albumDialog').open) {
-    return;
+document.addEventListener(
+  'paste',
+  event => {
+    if (!$('albumDialog').open) {
+      return;
+    }
+
+    const clipboardItems =
+      Array.from(
+        event.clipboardData?.items ||
+        []
+      );
+
+    const imageItem =
+      clipboardItems.find(item =>
+        item.type.startsWith(
+          'image/'
+        )
+      );
+
+    const file =
+      imageItem?.getAsFile();
+
+    if (file) {
+      event.preventDefault();
+      selectCover(file);
+    }
   }
-
-  const imageItem = [
-    ...event.clipboardData.items
-  ].find(item =>
-    item.type.startsWith('image/')
-  );
-
-  const file = imageItem?.getAsFile();
-
-  if (file) {
-    event.preventDefault();
-    selectCover(file);
-  }
-});
+);
 
 $('coverUrl').addEventListener(
   'change',
   () => {
+    clearObjectUrl();
+
     pendingCoverFile = null;
 
     showCoverPreview(
-      $('coverUrl').value.trim()
+      $('coverUrl')
+        .value
+        .trim()
     );
   }
 );
 
-$('removeCover').onclick = () => {
-  pendingCoverFile = null;
-  $('coverUrl').value = '';
+$('removeCover').addEventListener(
+  'click',
+  () => {
+    clearObjectUrl();
 
-  showCoverPreview('');
+    pendingCoverFile = null;
+
+    $('coverFile').value = '';
+    $('coverUrl').value = '';
+
+    showCoverPreview('');
+  }
+);
+
+/* =========================================
+   OPEN ADD/EDIT WINDOW
+========================================= */
+
+function openDialog(album = {}) {
+  $('albumForm').reset();
+
+  clearObjectUrl();
+
+  pendingCoverFile = null;
+
+  $('coverFile').value = '';
+
+  const isEditing =
+    Boolean(album.id);
+
+  $('albumId').value =
+    album.id || '';
+
+  $('dialogTitle').textContent =
+    isEditing
+      ? 'Edit album'
+      : 'Add an album';
+
+  $('enteredBy').innerHTML =
+    profiles
+      .slice()
+      .sort((first, second) =>
+        first.username.localeCompare(
+          second.username
+        )
+      )
+      .map(profile => {
+        return `
+          <option value="${profile.id}">
+            ${safe(profile.username)}
+          </option>
+        `;
+      })
+      .join('');
+
+  $('enteredBy').value =
+    album.user_id ||
+    currentUser.id;
+
+  const fieldMap = {
+    artist: 'artist',
+    title: 'title',
+    releaseYear: 'release_year',
+    genre: 'genre',
+    format: 'format',
+    vinylCondition:
+      'vinyl_condition',
+    sleeveCondition:
+      'sleeve_condition',
+    recordLabel: 'record_label',
+    catalogNumber:
+      'catalog_number',
+    country: 'country',
+    purchasePrice:
+      'purchase_price',
+    estimatedValue:
+      'estimated_value',
+    acquiredDate:
+      'acquired_date',
+    location: 'location',
+    coverUrl: 'cover_url',
+    notes: 'notes'
+  };
+
+  Object.entries(fieldMap).forEach(
+    ([elementId, databaseField]) => {
+      const value =
+        album[databaseField];
+
+      if (
+        value !== undefined &&
+        value !== null
+      ) {
+        $(elementId).value =
+          value;
+      }
+    }
+  );
+
+  showCoverPreview(
+    album.cover_url || ''
+  );
+
+  $('albumDialog').showModal();
+}
+
+/* =========================================
+   ADD BUTTONS
+========================================= */
+
+[
+  $('addBtn'),
+  $('addNav'),
+  ...document.querySelectorAll(
+    '.add-trigger'
+  )
+].forEach(button => {
+  button.addEventListener(
+    'click',
+    () => openDialog()
+  );
+});
+
+$('closeDialog').addEventListener(
+  'click',
+  () => {
+    clearObjectUrl();
+    $('albumDialog').close();
+  }
+);
+
+$('cancelBtn').addEventListener(
+  'click',
+  () => {
+    clearObjectUrl();
+    $('albumDialog').close();
+  }
+);
+
+/* =========================================
+   EDIT AND DELETE
+========================================= */
+
+window.editAlbum = albumId => {
+  const album = albums.find(
+    item => item.id === albumId
+  );
+
+  if (!album) {
+    toast(
+      'Album could not be found.',
+      true
+    );
+
+    return;
+  }
+
+  openDialog(album);
 };
+
+window.deleteAlbum =
+  async albumId => {
+    const confirmed =
+      window.confirm(
+        'Remove this album from the collection?'
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const { error } = await db
+      .from('albums')
+      .delete()
+      .eq('id', albumId);
+
+    if (error) {
+      toast(error.message, true);
+      return;
+    }
+
+    toast('Album removed');
+
+    await loadAlbums();
+  };
+
+/* =========================================
+   SAVE ALBUM
+========================================= */
 
 $('albumForm').addEventListener(
   'submit',
@@ -778,38 +1250,60 @@ $('albumForm').addEventListener(
     event.preventDefault();
 
     const {
-      data: { user }
+      data: { user },
+      error: userError
     } = await db.auth.getUser();
 
-    const albumId = $('albumId').value;
+    if (userError || !user) {
+      toast(
+        'Your session has expired. Please sign in again.',
+        true
+      );
+
+      return;
+    }
+
+    const albumId =
+      $('albumId').value;
 
     let coverUrl;
 
     try {
-      coverUrl = await uploadCover(user.id);
+      coverUrl =
+        await uploadCover(user.id);
     } catch (error) {
       toast(
         `Cover upload failed: ${error.message}`,
         true
       );
+
       return;
     }
 
-    const album = {
+    const albumRecord = {
       user_id: albumId
         ? $('enteredBy').value
         : user.id,
 
-      artist: $('artist').value.trim(),
-      title: $('title').value.trim(),
+      artist:
+        $('artist').value.trim(),
+
+      title:
+        $('title').value.trim(),
 
       release_year:
-        $('releaseYear').value || null,
+        $('releaseYear').value
+          ? Number(
+              $('releaseYear').value
+            )
+          : null,
 
       genre:
-        $('genre').value.trim() || null,
+        $('genre').value.trim() ||
+        null,
 
-      format: $('format').value,
+      format:
+        $('format').value,
 
       vinyl_condition:
         $('vinylCondition').value,
@@ -818,47 +1312,74 @@ $('albumForm').addEventListener(
         $('sleeveCondition').value,
 
       record_label:
-        $('recordLabel').value.trim() ||
+        $('recordLabel')
+          .value
+          .trim() ||
         null,
 
       catalog_number:
-        $('catalogNumber').value.trim() ||
+        $('catalogNumber')
+          .value
+          .trim() ||
         null,
 
       country:
-        $('country').value.trim() || null,
+        $('country').value.trim() ||
+        null,
 
       purchase_price:
-        $('purchasePrice').value || null,
+        $('purchasePrice').value
+          ? Number(
+              $('purchasePrice').value
+            )
+          : null,
 
       estimated_value:
-        $('estimatedValue').value || null,
+        $('estimatedValue').value
+          ? Number(
+              $('estimatedValue').value
+            )
+          : null,
 
       acquired_date:
-        $('acquiredDate').value || null,
+        $('acquiredDate').value ||
+        null,
 
       location:
-        $('location').value.trim() || null,
+        $('location').value.trim() ||
+        null,
 
-      cover_url: coverUrl,
+      cover_url:
+        coverUrl,
 
       notes:
-        $('notes').value.trim() || null
+        $('notes').value.trim() ||
+        null
     };
 
-    const result = albumId
-      ? await db
-          .from('albums')
-          .update(album)
-          .eq('id', albumId)
-      : await db
-          .from('albums')
-          .insert(album);
+    let result;
+
+    if (albumId) {
+      result = await db
+        .from('albums')
+        .update(albumRecord)
+        .eq('id', albumId);
+    } else {
+      result = await db
+        .from('albums')
+        .insert(albumRecord);
+    }
 
     if (result.error) {
-      toast(result.error.message, true);
+      toast(
+        result.error.message,
+        true
+      );
+
       return;
     }
+
+    clearObjectUrl();
 
     $('albumDialog').close();
 
@@ -872,75 +1393,107 @@ $('albumForm').addEventListener(
   }
 );
 
-$('exportBtn').onclick = () => {
-  const headers = [
-    'Artist',
-    'Album',
-    'Year',
-    'Genre',
-    'Format',
-    'Vinyl Condition',
-    'Sleeve Condition',
-    'Label',
-    'Catalog Number',
-    'Country',
-    'Purchase Price',
-    'Estimated Value',
-    'Acquired Date',
-    'Location',
-    'Entered By',
-    'Notes'
-  ];
+/* =========================================
+   EXPORT CSV
+========================================= */
 
-  const rows = filteredAlbums().map(
-    album => [
-      album.artist,
-      album.title,
-      album.release_year,
-      album.genre,
-      album.format,
-      album.vinyl_condition,
-      album.sleeve_condition,
-      album.record_label,
-      album.catalog_number,
-      album.country,
-      album.purchase_price,
-      album.estimated_value,
-      album.acquired_date,
-      album.location,
-      creatorName(album.user_id),
-      album.notes
+$('exportBtn').addEventListener(
+  'click',
+  () => {
+    const headers = [
+      'Artist',
+      'Album',
+      'Year',
+      'Genre',
+      'Format',
+      'Vinyl Condition',
+      'Sleeve Condition',
+      'Label',
+      'Catalog Number',
+      'Country',
+      'Purchase Price',
+      'Estimated Value',
+      'Acquired Date',
+      'Location',
+      'Entered By',
+      'Notes'
+    ];
+
+    const rows =
+      filteredAlbums().map(
+        album => [
+          album.artist,
+          album.title,
+          album.release_year,
+          album.genre,
+          album.format,
+          album.vinyl_condition,
+          album.sleeve_condition,
+          album.record_label,
+          album.catalog_number,
+          album.country,
+          album.purchase_price,
+          album.estimated_value,
+          album.acquired_date,
+          album.location,
+          creatorName(
+            album.user_id
+          ),
+          album.notes
+        ]
+      );
+
+    const csv = [
+      headers,
+      ...rows
     ]
-  );
+      .map(row => {
+        return row
+          .map(value => {
+            const escaped =
+              String(value ?? '')
+                .replaceAll(
+                  '"',
+                  '""'
+                );
 
-  const csv = [
-    headers,
-    ...rows
-  ]
-    .map(row =>
-      row
-        .map(value =>
-          `"${String(value ?? '')
-            .replaceAll('"', '""')}"`
-        )
-        .join(',')
-    )
-    .join('\n');
+            return `"${escaped}"`;
+          })
+          .join(',');
+      })
+      .join('\n');
 
-  const url = URL.createObjectURL(
-    new Blob(
+    const blob = new Blob(
       [csv],
-      { type: 'text/csv' }
-    )
-  );
+      {
+        type:
+          'text/csv;charset=utf-8'
+      }
+    );
 
-  const link = document.createElement('a');
+    const downloadUrl =
+      URL.createObjectURL(blob);
 
-  link.href = url;
-  link.download = 'karaffa-vault.csv';
-  link.click();
+    const link =
+      document.createElement('a');
 
-  URL.revokeObjectURL(url);
-};
+    link.href = downloadUrl;
+    link.download =
+      'karaffa-vault.csv';
+
+    document.body.appendChild(link);
+
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(
+      downloadUrl
+    );
+  }
+);
+
+/* =========================================
+   BEGIN
+========================================= */
 
 start();
