@@ -9,14 +9,15 @@ const db = supabase.createClient(
   SUPABASE_ANON_KEY
 );
 
-const $ = id => document.getElementById(id);
+const $ = id =>
+  document.getElementById(id);
 
 let albums = [];
 let profiles = [];
 let currentUser = null;
 let signUpMode = false;
 let pendingCoverFile = null;
-let coverPreviewObjectUrl = null;
+let temporaryCoverUrl = null;
 
 const conditions = [
   'Poor (P)',
@@ -29,9 +30,7 @@ const conditions = [
   'Mint (M)'
 ];
 
-/* =========================================
-   GENERAL HELPERS
-========================================= */
+/* GENERAL HELPERS */
 
 function toast(message, isError = false) {
   const element = $('toast');
@@ -42,7 +41,7 @@ function toast(message, isError = false) {
     ? 'toast show error'
     : 'toast show';
 
-  window.setTimeout(() => {
+  setTimeout(() => {
     element.className = 'toast';
   }, 3000);
 }
@@ -59,19 +58,18 @@ function money(value) {
 }
 
 function safe(value = '') {
+  const replacements = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;'
+  };
+
   return String(value).replace(
     /[&<>'"]/g,
-    character => {
-      const replacements = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        "'": '&#39;',
-        '"': '&quot;'
-      };
-
-      return replacements[character];
-    }
+    character =>
+      replacements[character]
   );
 }
 
@@ -83,9 +81,7 @@ function creatorName(userId) {
   return profile?.username || 'Unknown';
 }
 
-/* =========================================
-   START APPLICATION
-========================================= */
+/* AUTHENTICATION */
 
 async function start() {
   const {
@@ -102,16 +98,12 @@ async function start() {
 
   db.auth.onAuthStateChange(
     (_event, newSession) => {
-      window.setTimeout(() => {
+      setTimeout(() => {
         updateSession(newSession);
       }, 0);
     }
   );
 }
-
-/* =========================================
-   AUTHENTICATION
-========================================= */
 
 async function updateSession(session) {
   const signedIn = Boolean(session);
@@ -139,8 +131,7 @@ async function updateSession(session) {
   await loadAlbums();
 
   const displayName =
-    creatorName(currentUser.id) ||
-    currentUser.email;
+    creatorName(currentUser.id);
 
   $('userEmail').textContent =
     displayName;
@@ -180,9 +171,7 @@ $('authForm').addEventListener(
           email,
           password,
           options: {
-            data: {
-              username
-            }
+            data: { username }
           }
         });
 
@@ -199,10 +188,11 @@ $('authForm').addEventListener(
     }
 
     const { error } =
-      await db.auth.signInWithPassword({
-        email,
-        password
-      });
+      await db.auth
+        .signInWithPassword({
+          email,
+          password
+        });
 
     if (error) {
       toast(error.message, true);
@@ -215,10 +205,11 @@ $('toggleAuth').addEventListener(
   () => {
     signUpMode = !signUpMode;
 
-    $('usernameField').classList.toggle(
-      'hidden',
-      !signUpMode
-    );
+    $('usernameField')
+      .classList.toggle(
+        'hidden',
+        !signUpMode
+      );
 
     $('username').required =
       signUpMode;
@@ -257,47 +248,45 @@ $('signOut').addEventListener(
   }
 );
 
-/* =========================================
-   USER PROFILES
-========================================= */
+/* PROFILES */
 
 async function ensureProfile(user) {
   const {
     data: existingProfile,
-    error: profileError
+    error: selectError
   } = await db
     .from('profiles')
     .select('id, username')
     .eq('id', user.id)
     .maybeSingle();
 
-  if (profileError) {
-    toast(profileError.message, true);
+  if (selectError) {
+    toast(selectError.message, true);
     return;
   }
 
-  if (!existingProfile) {
-    const username =
-      user.user_metadata?.username ||
-      user.email.split('@')[0];
+  if (existingProfile) {
+    return;
+  }
 
-    const { error: insertError } =
-      await db
-        .from('profiles')
-        .insert({
-          id: user.id,
-          username
-        });
+  const username =
+    user.user_metadata?.username ||
+    user.email.split('@')[0];
 
-    if (insertError) {
-      toast(insertError.message, true);
-    }
+  const { error: insertError } =
+    await db
+      .from('profiles')
+      .insert({
+        id: user.id,
+        username
+      });
+
+  if (insertError) {
+    toast(insertError.message, true);
   }
 }
 
-/* =========================================
-   LOAD COLLECTION
-========================================= */
+/* LOAD DATA */
 
 async function loadAlbums() {
   const [
@@ -341,12 +330,10 @@ async function loadAlbums() {
   render();
 }
 
-/* =========================================
-   FILTER DROPDOWNS
-========================================= */
+/* BUILD FILTER OPTIONS */
 
 function populateGenres() {
-  const selectedGenre =
+  const previousValue =
     $('genreFilter').value;
 
   const genres = [
@@ -355,9 +342,7 @@ function populateGenres() {
         .map(album => album.genre)
         .filter(Boolean)
     )
-  ].sort((first, second) =>
-    first.localeCompare(second)
-  );
+  ].sort();
 
   $('genreFilter').innerHTML =
     '<option value="">All genres</option>' +
@@ -371,14 +356,14 @@ function populateGenres() {
       })
       .join('');
 
-  if (genres.includes(selectedGenre)) {
+  if (genres.includes(previousValue)) {
     $('genreFilter').value =
-      selectedGenre;
+      previousValue;
   }
 }
 
 function populateCollectors() {
-  const selectedCollector =
+  const previousValue =
     $('collectorFilter').value;
 
   const collectors = [
@@ -387,35 +372,29 @@ function populateCollectors() {
         creatorName(album.user_id)
       )
     )
-  ].sort((first, second) =>
-    first.localeCompare(second)
-  );
+  ].sort();
 
   $('collectorFilter').innerHTML =
     '<option value="">All collectors</option>' +
     collectors
-      .map(collector => {
+      .map(name => {
         return `
-          <option value="${safe(collector)}">
-            ${safe(collector)}
+          <option value="${safe(name)}">
+            ${safe(name)}
           </option>
         `;
       })
       .join('');
 
   if (
-    collectors.includes(
-      selectedCollector
-    )
+    collectors.includes(previousValue)
   ) {
     $('collectorFilter').value =
-      selectedCollector;
+      previousValue;
   }
 }
 
-/* =========================================
-   FILTER AND SORT ALBUMS
-========================================= */
+/* FILTER DATA */
 
 function filteredAlbums() {
   const query =
@@ -534,9 +513,7 @@ function filteredAlbums() {
   );
 }
 
-/* =========================================
-   DISPLAY COLLECTION
-========================================= */
+/* DISPLAY DATA */
 
 function render() {
   const visibleAlbums =
@@ -555,12 +532,12 @@ function render() {
       0
     );
 
-  const visibleGenres =
+  const genreCount =
     new Set(
       visibleAlbums
         .map(album => album.genre)
         .filter(Boolean)
-    );
+    ).size;
 
   const gradeNumbers =
     visibleAlbums
@@ -578,9 +555,9 @@ function render() {
     money(totalEstimatedValue);
 
   $('genreCount').textContent =
-    visibleGenres.size;
+    genreCount;
 
-  if (gradeNumbers.length > 0) {
+  if (gradeNumbers.length) {
     const gradeTotal =
       gradeNumbers.reduce(
         (total, grade) =>
@@ -588,23 +565,23 @@ function render() {
         0
       );
 
-    const averageGrade =
+    const average =
       gradeTotal /
       gradeNumbers.length;
 
     const conditionName =
       conditions[
-        Math.round(averageGrade)
+        Math.round(average)
       ];
 
-    const conditionMatch =
+    const abbreviation =
       conditionName.match(
         /\((.*?)\)/
       );
 
     $('avgCondition').textContent =
-      conditionMatch
-        ? conditionMatch[1]
+      abbreviation
+        ? abbreviation[1]
         : '—';
   } else {
     $('avgCondition').textContent =
@@ -618,9 +595,7 @@ function render() {
 
   $('albumGrid').innerHTML =
     visibleAlbums
-      .map(album => {
-        return buildAlbumCard(album);
-      })
+      .map(buildAlbumCard)
       .join('');
 }
 
@@ -635,7 +610,7 @@ function buildAlbumCard(album) {
       ? conditionMatch[1]
       : '—';
 
-  const coverImage =
+  const cover =
     album.cover_url
       ? `
         <img
@@ -661,14 +636,13 @@ function buildAlbumCard(album) {
         ></div>
       `;
 
-  const ownerControls =
+  const controls =
     album.user_id === currentUser?.id
       ? `
         <button
           type="button"
           onclick="editAlbum('${album.id}')"
           title="Edit album"
-          aria-label="Edit album"
         >
           ✎
         </button>
@@ -678,7 +652,6 @@ function buildAlbumCard(album) {
           class="delete"
           onclick="deleteAlbum('${album.id}')"
           title="Delete album"
-          aria-label="Delete album"
         >
           ⌫
         </button>
@@ -688,7 +661,7 @@ function buildAlbumCard(album) {
   return `
     <article class="album-card">
       <div class="cover">
-        ${coverImage}
+        ${cover}
       </div>
 
       <div class="card-body">
@@ -746,7 +719,7 @@ function buildAlbumCard(album) {
           </span>
 
           <div class="card-actions">
-            ${ownerControls}
+            ${controls}
           </div>
         </div>
       </div>
@@ -754,49 +727,59 @@ function buildAlbumCard(album) {
   `;
 }
 
-/* =========================================
-   SEARCH AND FILTER EVENTS
-========================================= */
+/* IMMEDIATE FILTER EVENTS */
+
+$('search').addEventListener(
+  'input',
+  render
+);
 
 [
-  'search',
   'genreFilter',
   'conditionFilter',
   'collectorFilter',
   'sort'
 ].forEach(id => {
-  const element = $(id);
+  const control = $(id);
 
-  if (!element) {
-    console.error(
-      `Missing HTML element: #${id}`
-    );
-
-    return;
-  }
-
-  const eventName =
-    id === 'search'
-      ? 'input'
-      : 'change';
-
-  element.addEventListener(
-    eventName,
+  /*
+    The input event responds as soon as
+    an option is selected.
+  */
+  control.addEventListener(
+    'input',
     render
+  );
+
+  /*
+    Change is retained as a fallback.
+  */
+  control.addEventListener(
+    'change',
+    render
+  );
+
+  /*
+    Also responds when the control is
+    clicked and its value has changed.
+  */
+  control.addEventListener(
+    'click',
+    () => {
+      requestAnimationFrame(render);
+    }
   );
 });
 
-/* =========================================
-   ALBUM COVER
-========================================= */
+/* COVER IMAGE */
 
-function clearObjectUrl() {
-  if (coverPreviewObjectUrl) {
+function clearTemporaryCoverUrl() {
+  if (temporaryCoverUrl) {
     URL.revokeObjectURL(
-      coverPreviewObjectUrl
+      temporaryCoverUrl
     );
 
-    coverPreviewObjectUrl = null;
+    temporaryCoverUrl = null;
   }
 }
 
@@ -804,15 +787,12 @@ function showCoverPreview(source = '') {
   const image =
     $('coverPreview');
 
-  const prompt =
-    $('coverPrompt');
-
   image.classList.toggle(
     'hidden',
     !source
   );
 
-  prompt.classList.toggle(
+  $('coverPrompt').classList.toggle(
     'hidden',
     Boolean(source)
   );
@@ -829,27 +809,27 @@ function selectCover(file) {
     return;
   }
 
-  const allowedTypes = [
+  const permittedTypes = [
     'image/jpeg',
     'image/png',
     'image/webp'
   ];
 
   if (
-    !allowedTypes.includes(file.type)
+    !permittedTypes.includes(file.type)
   ) {
     toast(
-      'Please choose a JPG, PNG, or WEBP image.',
+      'Choose a JPG, PNG, or WEBP image.',
       true
     );
 
     return;
   }
 
-  const maximumSize =
-    5 * 1024 * 1024;
-
-  if (file.size > maximumSize) {
+  if (
+    file.size >
+    5 * 1024 * 1024
+  ) {
     toast(
       'Cover images must be 5 MB or smaller.',
       true
@@ -858,17 +838,16 @@ function selectCover(file) {
     return;
   }
 
-  clearObjectUrl();
+  clearTemporaryCoverUrl();
 
   pendingCoverFile = file;
-
   $('coverUrl').value = '';
 
-  coverPreviewObjectUrl =
+  temporaryCoverUrl =
     URL.createObjectURL(file);
 
   showCoverPreview(
-    coverPreviewObjectUrl
+    temporaryCoverUrl
   );
 }
 
@@ -880,34 +859,26 @@ async function uploadCover(userId) {
     );
   }
 
-  const fileName =
-    pendingCoverFile.name || '';
-
-  const originalExtension =
-    fileName.includes('.')
-      ? fileName.split('.').pop()
-      : '';
-
-  const mimeExtension =
-    pendingCoverFile.type
-      .split('/')
-      .pop();
-
-  const extension = String(
-    originalExtension ||
-    mimeExtension ||
-    'jpg'
-  )
-    .toLowerCase()
-    .replace(
-      /[^a-z0-9]/g,
-      ''
-    );
+  const fileExtension =
+    (
+      pendingCoverFile.name
+        .split('.')
+        .pop() ||
+      pendingCoverFile.type
+        .split('/')
+        .pop() ||
+      'jpg'
+    )
+      .toLowerCase()
+      .replace(
+        /[^a-z0-9]/g,
+        ''
+      );
 
   const storagePath =
     `${userId}/` +
     `${crypto.randomUUID()}.` +
-    extension;
+    fileExtension;
 
   const { error } =
     await db.storage
@@ -938,7 +909,8 @@ async function uploadCover(userId) {
 
 $('chooseCover').addEventListener(
   'click',
-  () => {
+  event => {
+    event.stopPropagation();
     $('coverFile').click();
   }
 );
@@ -946,22 +918,20 @@ $('chooseCover').addEventListener(
 $('coverFile').addEventListener(
   'change',
   event => {
-    const file =
-      event.target.files?.[0];
-
-    selectCover(file);
+    selectCover(
+      event.target.files?.[0]
+    );
   }
 );
 
 $('coverDropZone').addEventListener(
   'click',
   event => {
-    const clickedButton =
-      event.target.closest(
+    if (
+      !event.target.closest(
         '#chooseCover'
-      );
-
-    if (!clickedButton) {
+      )
+    ) {
       $('coverFile').click();
     }
   }
@@ -971,42 +941,45 @@ $('coverDropZone').addEventListener(
   'dragenter',
   'dragover'
 ].forEach(eventName => {
-  $('coverDropZone').addEventListener(
-    eventName,
-    event => {
-      event.preventDefault();
+  $('coverDropZone')
+    .addEventListener(
+      eventName,
+      event => {
+        event.preventDefault();
 
-      $('coverDropZone')
-        .classList.add(
-          'dragging'
-        );
-    }
-  );
+        $('coverDropZone')
+          .classList.add(
+            'dragging'
+          );
+      }
+    );
 });
 
 [
   'dragleave',
   'drop'
 ].forEach(eventName => {
-  $('coverDropZone').addEventListener(
-    eventName,
-    event => {
-      event.preventDefault();
+  $('coverDropZone')
+    .addEventListener(
+      eventName,
+      event => {
+        event.preventDefault();
 
-      $('coverDropZone')
-        .classList.remove(
-          'dragging'
-        );
+        $('coverDropZone')
+          .classList.remove(
+            'dragging'
+          );
 
-      if (eventName === 'drop') {
-        const file =
-          event.dataTransfer
-            .files?.[0];
-
-        selectCover(file);
+        if (
+          eventName === 'drop'
+        ) {
+          selectCover(
+            event.dataTransfer
+              .files?.[0]
+          );
+        }
       }
-    }
-  );
+    );
 });
 
 document.addEventListener(
@@ -1016,25 +989,25 @@ document.addEventListener(
       return;
     }
 
-    const clipboardItems =
+    const items =
       Array.from(
         event.clipboardData?.items ||
         []
       );
 
     const imageItem =
-      clipboardItems.find(item =>
+      items.find(item =>
         item.type.startsWith(
           'image/'
         )
       );
 
-    const file =
+    const imageFile =
       imageItem?.getAsFile();
 
-    if (file) {
+    if (imageFile) {
       event.preventDefault();
-      selectCover(file);
+      selectCover(imageFile);
     }
   }
 );
@@ -1042,8 +1015,7 @@ document.addEventListener(
 $('coverUrl').addEventListener(
   'change',
   () => {
-    clearObjectUrl();
-
+    clearTemporaryCoverUrl();
     pendingCoverFile = null;
 
     showCoverPreview(
@@ -1057,7 +1029,7 @@ $('coverUrl').addEventListener(
 $('removeCover').addEventListener(
   'click',
   () => {
-    clearObjectUrl();
+    clearTemporaryCoverUrl();
 
     pendingCoverFile = null;
 
@@ -1068,27 +1040,21 @@ $('removeCover').addEventListener(
   }
 );
 
-/* =========================================
-   OPEN ADD/EDIT WINDOW
-========================================= */
+/* ADD AND EDIT WINDOW */
 
 function openDialog(album = {}) {
   $('albumForm').reset();
 
-  clearObjectUrl();
+  clearTemporaryCoverUrl();
 
   pendingCoverFile = null;
-
   $('coverFile').value = '';
-
-  const isEditing =
-    Boolean(album.id);
 
   $('albumId').value =
     album.id || '';
 
   $('dialogTitle').textContent =
-    isEditing
+    album.id
       ? 'Edit album'
       : 'Add an album';
 
@@ -1113,7 +1079,7 @@ function openDialog(album = {}) {
     album.user_id ||
     currentUser.id;
 
-  const fieldMap = {
+  const fields = {
     artist: 'artist',
     title: 'title',
     releaseYear: 'release_year',
@@ -1138,14 +1104,14 @@ function openDialog(album = {}) {
     notes: 'notes'
   };
 
-  Object.entries(fieldMap).forEach(
-    ([elementId, databaseField]) => {
+  Object.entries(fields).forEach(
+    ([elementId, fieldName]) => {
       const value =
-        album[databaseField];
+        album[fieldName];
 
       if (
-        value !== undefined &&
-        value !== null
+        value !== null &&
+        value !== undefined
       ) {
         $(elementId).value =
           value;
@@ -1159,10 +1125,6 @@ function openDialog(album = {}) {
 
   $('albumDialog').showModal();
 }
-
-/* =========================================
-   ADD BUTTONS
-========================================= */
 
 [
   $('addBtn'),
@@ -1180,7 +1142,7 @@ function openDialog(album = {}) {
 $('closeDialog').addEventListener(
   'click',
   () => {
-    clearObjectUrl();
+    clearTemporaryCoverUrl();
     $('albumDialog').close();
   }
 );
@@ -1188,14 +1150,10 @@ $('closeDialog').addEventListener(
 $('cancelBtn').addEventListener(
   'click',
   () => {
-    clearObjectUrl();
+    clearTemporaryCoverUrl();
     $('albumDialog').close();
   }
 );
-
-/* =========================================
-   EDIT AND DELETE
-========================================= */
 
 window.editAlbum = albumId => {
   const album = albums.find(
@@ -1217,7 +1175,7 @@ window.editAlbum = albumId => {
 window.deleteAlbum =
   async albumId => {
     const confirmed =
-      window.confirm(
+      confirm(
         'Remove this album from the collection?'
       );
 
@@ -1225,10 +1183,11 @@ window.deleteAlbum =
       return;
     }
 
-    const { error } = await db
-      .from('albums')
-      .delete()
-      .eq('id', albumId);
+    const { error } =
+      await db
+        .from('albums')
+        .delete()
+        .eq('id', albumId);
 
     if (error) {
       toast(error.message, true);
@@ -1240,9 +1199,7 @@ window.deleteAlbum =
     await loadAlbums();
   };
 
-/* =========================================
-   SAVE ALBUM
-========================================= */
+/* SAVE ALBUM */
 
 $('albumForm').addEventListener(
   'submit',
@@ -1256,7 +1213,7 @@ $('albumForm').addEventListener(
 
     if (userError || !user) {
       toast(
-        'Your session has expired. Please sign in again.',
+        'Please sign in again.',
         true
       );
 
@@ -1324,7 +1281,9 @@ $('albumForm').addEventListener(
         null,
 
       country:
-        $('country').value.trim() ||
+        $('country')
+          .value
+          .trim() ||
         null,
 
       purchase_price:
@@ -1346,29 +1305,26 @@ $('albumForm').addEventListener(
         null,
 
       location:
-        $('location').value.trim() ||
+        $('location')
+          .value
+          .trim() ||
         null,
 
-      cover_url:
-        coverUrl,
+      cover_url: coverUrl,
 
       notes:
         $('notes').value.trim() ||
         null
     };
 
-    let result;
-
-    if (albumId) {
-      result = await db
-        .from('albums')
-        .update(albumRecord)
-        .eq('id', albumId);
-    } else {
-      result = await db
-        .from('albums')
-        .insert(albumRecord);
-    }
+    const result = albumId
+      ? await db
+          .from('albums')
+          .update(albumRecord)
+          .eq('id', albumId)
+      : await db
+          .from('albums')
+          .insert(albumRecord);
 
     if (result.error) {
       toast(
@@ -1379,7 +1335,7 @@ $('albumForm').addEventListener(
       return;
     }
 
-    clearObjectUrl();
+    clearTemporaryCoverUrl();
 
     $('albumDialog').close();
 
@@ -1393,9 +1349,7 @@ $('albumForm').addEventListener(
   }
 );
 
-/* =========================================
-   EXPORT CSV
-========================================= */
+/* CSV EXPORT */
 
 $('exportBtn').addEventListener(
   'click',
@@ -1471,13 +1425,14 @@ $('exportBtn').addEventListener(
       }
     );
 
-    const downloadUrl =
+    const url =
       URL.createObjectURL(blob);
 
     const link =
       document.createElement('a');
 
-    link.href = downloadUrl;
+    link.href = url;
+
     link.download =
       'karaffa-vault.csv';
 
@@ -1486,14 +1441,8 @@ $('exportBtn').addEventListener(
     link.click();
     link.remove();
 
-    URL.revokeObjectURL(
-      downloadUrl
-    );
+    URL.revokeObjectURL(url);
   }
 );
-
-/* =========================================
-   BEGIN
-========================================= */
 
 start();
