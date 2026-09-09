@@ -505,10 +505,40 @@ function filteredAlbums() {
         );
       }
 
-      return String(first.artist)
-        .localeCompare(
-          String(second.artist)
-        );
+const artistComparison =
+  String(first.artist).localeCompare(
+    String(second.artist),
+    undefined,
+    {
+      sensitivity: 'base'
+    }
+  );
+
+if (artistComparison !== 0) {
+  return artistComparison;
+}
+
+const firstYear =
+  first.release_year == null
+    ? 9999
+    : Number(first.release_year);
+
+const secondYear =
+  second.release_year == null
+    ? 9999
+    : Number(second.release_year);
+
+if (firstYear !== secondYear) {
+  return firstYear - secondYear;
+}
+
+return String(first.title).localeCompare(
+  String(second.title),
+  undefined,
+  {
+    sensitivity: 'base'
+  }
+);
     }
   );
 }
