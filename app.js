@@ -26,6 +26,7 @@ const conditions = [
   'Good Plus (G+)',
   'Very Good (VG)',
   'Very Good Plus (VG+)',
+  'Excellent (EX)',
   'Near Mint (NM)',
   'Mint (M)'
 ];
