@@ -2,7 +2,7 @@ const SUPABASE_URL = 'https://relmecpdjifmlmeyubof.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_6v7O6VP7oeT5hkxzeGGgGw_QZGWVmXA';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const $ = id => document.getElementById(id);
-let albums = [], profiles = [], currentUser = null, signUpMode = false, pendingCoverFile = null;
+let albums = [], profiles = [], currentUser = null, signUpMode = false, pendingCoverFile = null, currentView = 'records';
 const conditions = ['Poor (P)','Fair (F)','Good (G)','Good Plus (G+)','Very Good (VG)','Very Good Plus (VG+)','Near Mint (NM)','Mint (M)'];
 
 function toast(message, error=false){const t=$('toast');t.textContent=message;t.className=`toast show${error?' error':''}`;setTimeout(()=>t.className='toast',2600)}
@@ -35,8 +35,18 @@ function filteredAlbums(){
 function render(){
   const list=filteredAlbums(),values=list.reduce((s,a)=>s+Number(a.estimated_value||0),0),grades=list.map(a=>conditions.indexOf(a.vinyl_condition)).filter(i=>i>=0);
   $('albumCount').textContent=list.length;$('totalValue').textContent=money(values);$('genreCount').textContent=new Set(list.map(a=>a.genre).filter(Boolean)).size;$('avgCondition').textContent=grades.length?conditions[Math.round(grades.reduce((a,b)=>a+b,0)/grades.length)].match(/\((.*?)\)/)?.[1]||'—':'—';
-  $('emptyState').classList.toggle('hidden',list.length>0);$('albumGrid').innerHTML=list.map(a=>`<article class="album-card"><div class="cover">${a.cover_url?`<img src="${safe(a.cover_url)}" alt="Cover of ${safe(a.title)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'cover-placeholder'}))">`:'<div class="cover-placeholder"></div>'}</div><div class="card-body"><h3 title="${safe(a.title)}">${safe(a.title)}</h3><p class="artist">${safe(a.artist)}${a.release_year?` · ${a.release_year}`:''}</p><div class="tags">${a.genre?`<span class="tag">${safe(a.genre)}</span>`:''}<span class="tag">${safe(a.format||'LP')}</span><span class="tag">${safe((a.vinyl_condition||'').match(/\((.*?)\)/)?.[1]||'—')}</span></div><p class="entered-by">Entered by <strong>${safe(creatorName(a.user_id))}</strong></p><div class="card-meta"><span class="value">${money(a.estimated_value)}</span><div class="card-actions">${a.user_id===currentUser?.id?`<button onclick="editAlbum('${a.id}')" title="Edit">✎</button><button class="delete" onclick="deleteAlbum('${a.id}')" title="Delete">⌫</button>`:''}</div></div></div></article>`).join('');
+  $('recordsViewBtn').classList.toggle('active',currentView==='records');$('foldersViewBtn').classList.toggle('active',currentView==='folders');
+  $('albumGrid').classList.toggle('hidden',currentView!=='records');$('folderGrid').classList.toggle('hidden',currentView!=='folders');$('emptyState').classList.toggle('hidden',list.length>0);
+  if(currentView==='folders')return renderFolders(list);
+  $('albumGrid').innerHTML=list.map(a=>`<article class="album-card"><div class="cover">${a.cover_url?`<img src="${safe(a.cover_url)}" alt="Cover of ${safe(a.title)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'cover-placeholder'}))">`:'<div class="cover-placeholder"></div>'}</div><div class="card-body"><h3 title="${safe(a.title)}">${safe(a.title)}</h3><p class="artist">${safe(a.artist)}${a.release_year?` · ${a.release_year}`:''}</p><div class="tags">${a.genre?`<span class="tag">${safe(a.genre)}</span>`:''}<span class="tag">${safe(a.format||'LP')}</span><span class="tag">${safe((a.vinyl_condition||'').match(/\((.*?)\)/)?.[1]||'—')}</span></div><p class="entered-by">Entered by <strong>${safe(creatorName(a.user_id))}</strong></p><div class="card-meta"><span class="value">${money(a.estimated_value)}</span><div class="card-actions">${a.user_id===currentUser?.id?`<button onclick="editAlbum('${a.id}')" title="Edit">✎</button><button class="delete" onclick="deleteAlbum('${a.id}')" title="Delete">⌫</button>`:''}</div></div></div></article>`).join('');
 }
+function renderFolders(list){
+  const groups=new Map();list.forEach(a=>{const genre=a.genre||'Uncategorized';if(!groups.has(genre))groups.set(genre,[]);groups.get(genre).push(a)});
+  $('folderGrid').innerHTML=[...groups].sort((a,b)=>a[0].localeCompare(b[0])).map(([genre,items])=>{const covers=items.filter(a=>a.cover_url).slice(0,3),value=items.reduce((sum,a)=>sum+Number(a.estimated_value||0),0);return `<button class="genre-folder" type="button" data-genre="${safe(genre)}"><span class="folder-tab"></span><span class="folder-covers">${covers.length?covers.map(a=>`<img src="${safe(a.cover_url)}" alt="" loading="lazy">`).join(''):'<span class="folder-record">♪</span>'}</span><span class="folder-info"><span><strong>${safe(genre)}</strong><small>${items.length} ${items.length===1?'album':'albums'}</small></span><b>${money(value)}</b></span></button>`}).join('');
+  document.querySelectorAll('.genre-folder').forEach(folder=>folder.onclick=()=>{$('genreFilter').value=folder.dataset.genre==='Uncategorized'?'':folder.dataset.genre;currentView='records';render()});
+}
+$('recordsViewBtn').onclick=()=>{currentView='records';render()};
+$('foldersViewBtn').onclick=()=>{currentView='folders';render()};
 $('search').addEventListener('input',render);
 ['genreFilter','conditionFilter','collectorFilter','sort'].forEach(id=>{
   $(id).addEventListener('input',render);
