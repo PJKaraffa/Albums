@@ -35,6 +35,7 @@ create table if not exists public.albums (
   title text not null,
   release_year integer check (release_year between 1900 and 2100),
   genre text,
+  style text,
   format text not null default 'LP',
   vinyl_condition text not null default 'Near Mint (NM)',
   sleeve_condition text not null default 'Near Mint (NM)',
@@ -69,3 +70,21 @@ create or replace function public.set_updated_at() returns trigger language plpg
 begin new.updated_at = now(); return new; end; $$;
 drop trigger if exists albums_set_updated_at on public.albums;
 create trigger albums_set_updated_at before update on public.albums for each row execute function public.set_updated_at();
+
+alter table public.albums add column if not exists style text;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('album-covers', 'album-covers', true, 5242880, array['image/jpeg','image/png','image/webp'])
+on conflict (id) do update set public=true, file_size_limit=5242880, allowed_mime_types=array['image/jpeg','image/png','image/webp'];
+
+drop policy if exists "Anyone can view album covers" on storage.objects;
+create policy "Anyone can view album covers" on storage.objects for select using (bucket_id = 'album-covers');
+drop policy if exists "Users can upload own album covers" on storage.objects;
+create policy "Users can upload own album covers" on storage.objects for insert to authenticated
+with check (bucket_id = 'album-covers' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "Users can update own album covers" on storage.objects;
+create policy "Users can update own album covers" on storage.objects for update to authenticated
+using (bucket_id = 'album-covers' and owner_id = auth.uid()::text);
+drop policy if exists "Users can delete own album covers" on storage.objects;
+create policy "Users can delete own album covers" on storage.objects for delete to authenticated
+using (bucket_id = 'album-covers' and owner_id = auth.uid()::text);

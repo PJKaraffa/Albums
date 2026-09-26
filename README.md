@@ -1,6 +1,6 @@
 # Karaffa Vault LP Collection Manager
 
-A shared family LP collection backed by Supabase. It includes account sign-in, collector attribution and filtering, multiple pressings of the same album, album search and filters, Goldmine-style vinyl/sleeve condition grades, pricing, collection totals, cover images, editing, deletion, and CSV export.
+A shared family LP collection backed by Supabase. It includes account sign-in, collector attribution and filtering, multiple pressings of the same album, album search and filters, Goldmine-style vinyl/sleeve condition grades, pricing, collection totals, pasted/uploaded album covers, editing, deletion, and CSV export.
 
 ## Setup
 
@@ -16,5 +16,13 @@ Never put the Supabase `service_role` key in this webpage. The anon key is inten
 
 - `index.html` — page structure
 - `styles.css` — responsive visual design
+- `cover-upload.css` — album-cover upload and preview styling
+- `folders.html` — fast Genre and Style folder browser
+- `folders.js` — automatic folder and album navigation
+- `folders.css` — folder page styling
+
+## Genre and Style upgrade
+
+Run `supabase.sql` again once to add the new `style` column. Existing albums remain intact and appear under **No Style Assigned** until edited. Upload `folders.html`, `folders.js`, and `folders.css` beside `index.html` in the GitHub repository root.
 - `app.js` — authentication, catalog, search, filters, CRUD, and CSV export
 - `supabase.sql` — database table, indexes, security policies, and timestamp trigger
