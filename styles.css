@@ -110,6 +110,10 @@ main{padding:25px 16px}
 .form-grid .full{grid-column:auto}
 }
 .view-switch{width:min(360px,100%);margin:0 auto 18px;padding:4px;display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:999px;background:#eeeae1}
+.clickable-cover{position:relative;cursor:pointer}
+.clickable-cover::after{content:"Edit album";position:absolute;inset:auto 12px 12px;padding:7px 10px;border-radius:8px;background:#142a20df;color:white;text-align:center;font-size:.78rem;font-weight:700;opacity:0;transform:translateY(5px);transition:.2s}
+.clickable-cover:hover::after,.clickable-cover:focus::after{opacity:1;transform:none}
+.clickable-cover:focus{outline:3px solid #b07a2a;outline-offset:-3px}
 .view-btn{border:0;border-radius:999px;padding:10px 18px;background:transparent;color:var(--muted);font-weight:700}
 .view-btn.active{background:white;color:var(--green);box-shadow:0 3px 12px #17211b18}
 .folder-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:24px;margin-top:25px}
