@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=17">
+  <link rel="stylesheet" href="styles.css?v=18">
   <link rel="stylesheet" href="cover-upload.css?v=4">
 </head>
 <body>
@@ -104,12 +104,13 @@
     <div class="info-dialog-body">
       <div class="dialog-head"><div><span class="eyebrow">ALBUM INFORMATION</span><h2 id="infoTitle">Album</h2><p id="infoArtist" class="info-artist"></p></div><button class="icon-btn" id="closeInfoDialog" type="button" aria-label="Close">×</button></div>
       <div class="info-layout"><div id="infoCover" class="info-cover"></div><div id="infoDetails" class="info-details"></div></div>
+      <section class="copies-section"><h3>Physical copies</h3><div id="infoCopies" class="copies-list"></div></section>
       <div id="infoNotesWrap" class="info-notes"><span>Notes</span><p id="infoNotes"></p></div>
       <div class="dialog-actions"><button id="addCopyBtn" class="outline" type="button">＋ Add another copy</button><button id="closeInfoBtn" class="primary" type="button">Close</button></div>
     </div>
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=17"></script>
+  <script src="app.js?v=18"></script>
 </body>
 </html>
