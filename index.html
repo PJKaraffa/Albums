@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=19">
+  <link rel="stylesheet" href="styles.css?v=20">
   <link rel="stylesheet" href="cover-upload.css?v=4">
 </head>
 <body>
@@ -49,7 +49,7 @@
           <button id="foldersViewBtn" class="view-btn" type="button">Folders</button>
         </div>
         <div class="tools">
-          <div class="search-wrap">⌕<input id="search" type="search" placeholder="Search artist, album, label, catalog number…"></div>
+          <div class="search-wrap">⌕<input id="search" type="search" placeholder="Search artist, album, label, catalog number, barcode…"></div>
           <select id="genreFilter"><option value="">All genres</option></select>
           <select id="conditionFilter"><option value="">All conditions</option><option>Mint (M)</option><option>Near Mint (NM)</option><option>Very Good Plus (VG+)</option><option>Very Good (VG)</option><option>Good Plus (G+)</option><option>Good (G)</option><option>Fair (F)</option><option>Poor (P)</option></select>
           <select id="collectorFilter"><option value="">All collectors</option></select>
@@ -78,6 +78,8 @@
         <label>Sleeve condition<select id="sleeveCondition"><option>Mint (M)</option><option selected>Near Mint (NM)</option><option>Very Good Plus (VG+)</option><option>Very Good (VG)</option><option>Good Plus (G+)</option><option>Good (G)</option><option>Fair (F)</option><option>Poor (P)</option><option>No Cover</option></select></label>
         <label>Label<input id="recordLabel" maxlength="100" placeholder="Columbia"></label>
         <label>Catalog number<input id="catalogNumber" maxlength="80" placeholder="CL 1355"></label>
+        <label>Barcode<input id="barcode" maxlength="100" placeholder="Scan or enter barcode"></label>
+        <label>Status<select id="status"><option value="IN_STOCK">IN_STOCK</option><option value="HELD">HELD — Short-term / System cart hold</option><option value="PUT_ASIDE">PUT_ASIDE — Manual / Long-term hold</option><option value="SOLD">SOLD</option></select></label>
         <label>Country<input id="country" maxlength="60" placeholder="US"></label>
         <label>Purchase price ($)<input id="purchasePrice" type="number" min="0" step="0.01" placeholder="25.00"></label>
         <label>Estimated value ($)<input id="estimatedValue" type="number" min="0" step="0.01" placeholder="40.00"></label>
@@ -111,6 +113,6 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=19"></script>
+  <script src="app.js?v=20"></script>
 </body>
 </html>
