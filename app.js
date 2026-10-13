@@ -4,7 +4,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const $ = id => document.getElementById(id);
 let albums = [], profiles = [], currentUser = null, signUpMode = false, pendingCoverFile = null, currentView = 'records', viewedAlbumId = null;
 const selectedCollectors = new Set();
-const conditions = ['Poor (P)','Fair (F)','Good (G)','Good Plus (G+)','Very Good (VG)','Very Good Plus (VG+)','Near Mint (NM)','Mint (M)'];
+const conditions = ['Poor (P)','Fair (F)','Good (G)','Good Plus (G+)','Very Good (VG)','Very Good Plus (VG+)','Excellent (EX)','Near Mint (NM)','Mint (M)'];
 
 function toast(message, error=false){const t=$('toast');t.textContent=message;t.className=`toast show${error?' error':''}`;setTimeout(()=>t.className='toast',2600)}
 function money(value){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(Number(value)||0)}
