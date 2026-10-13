@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20">
+  <link rel="stylesheet" href="styles.css?v=21">
   <link rel="stylesheet" href="cover-upload.css?v=4">
 </head>
 <body>
@@ -52,7 +52,13 @@
           <div class="search-wrap">⌕<input id="search" type="search" placeholder="Search artist, album, label, catalog number, barcode…"></div>
           <select id="genreFilter"><option value="">All genres</option></select>
           <select id="conditionFilter"><option value="">All conditions</option><option>Mint (M)</option><option>Near Mint (NM)</option><option>Very Good Plus (VG+)</option><option>Very Good (VG)</option><option>Good Plus (G+)</option><option>Good (G)</option><option>Fair (F)</option><option>Poor (P)</option></select>
-          <select id="collectorFilter"><option value="">All collectors</option></select>
+          <div id="collectorMulti" class="collector-multi">
+            <button id="collectorFilterBtn" class="collector-filter-btn" type="button" aria-haspopup="true" aria-expanded="false">All collectors <span>▾</span></button>
+            <div id="collectorMenu" class="collector-menu hidden">
+              <label class="collector-option collector-all"><input id="collectorAll" type="checkbox" checked> <span>All collectors</span></label>
+              <div id="collectorOptions"></div>
+            </div>
+          </div>
           <select id="sort"><option value="artist">Artist A–Z</option><option value="title">Album A–Z</option><option value="year_desc">Newest first</option><option value="value_desc">Highest value</option><option value="created_desc">Recently added</option></select>
           <button id="exportBtn" class="outline">Export CSV</button>
         </div>
@@ -113,6 +119,6 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=20"></script>
+  <script src="app.js?v=21"></script>
 </body>
 </html>

@@ -3,6 +3,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_6v7O6VP7oeT5hkxzeGGgGw_QZGWVmXA';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const $ = id => document.getElementById(id);
 let albums = [], profiles = [], currentUser = null, signUpMode = false, pendingCoverFile = null, currentView = 'records', viewedAlbumId = null;
+const selectedCollectors = new Set();
 const conditions = ['Poor (P)','Fair (F)','Good (G)','Good Plus (G+)','Very Good (VG)','Very Good Plus (VG+)','Near Mint (NM)','Mint (M)'];
 
 function toast(message, error=false){const t=$('toast');t.textContent=message;t.className=`toast show${error?' error':''}`;setTimeout(()=>t.className='toast',2600)}
@@ -29,10 +30,11 @@ function albumKey(a){return `${String(a.artist||'').trim().toLowerCase()}|${Stri
 function copyBadge(a){const count=albums.filter(item=>albumKey(item)===albumKey(a)).length;return count>1?`<span class="tag copies-tag">${count} copies</span>`:''}
 async function loadAlbums(){const [a,p]=await Promise.all([db.from('albums').select('*').order('artist'),db.from('profiles').select('*')]);if(a.error)return toast(a.error.message,true);albums=a.data||[];profiles=p.data||profiles;populateGenres();populateCollectors();render()}
 function populateGenres(){const current=$('genreFilter').value;const genres=[...new Set(albums.map(a=>a.genre).filter(Boolean))].sort();$('genreFilter').innerHTML='<option value="">All genres</option>'+genres.map(g=>`<option>${safe(g)}</option>`).join('');$('genreFilter').value=current}
-function populateCollectors(){const current=$('collectorFilter').value;const names=[...new Set(albums.map(a=>creatorName(a.user_id)))].sort();$('collectorFilter').innerHTML='<option value="">All collectors</option>'+names.map(n=>`<option>${safe(n)}</option>`).join('');$('collectorFilter').value=current}
+function updateCollectorButton(){const names=[...selectedCollectors];$('collectorAll').checked=!names.length;$('collectorFilterBtn').firstChild.textContent=!names.length?'All collectors ':names.length===1?`${names[0]} `:`${names.length} collectors `}
+function populateCollectors(){const names=[...new Set(albums.map(a=>creatorName(a.user_id)))].sort();[...selectedCollectors].forEach(name=>{if(!names.includes(name))selectedCollectors.delete(name)});$('collectorOptions').innerHTML=names.map(name=>`<label class="collector-option"><input class="collector-check" type="checkbox" value="${safe(name)}" ${selectedCollectors.has(name)?'checked':''}> <span>${safe(name)}</span></label>`).join('');updateCollectorButton()}
 function filteredAlbums(){
-  const q=$('search').value.trim().toLowerCase(),genre=$('genreFilter').value,condition=$('conditionFilter').value,collector=$('collectorFilter').value;
-  const out=albums.filter(a=>(!q||[a.artist,a.title,a.record_label,a.catalog_number,a.barcode,a.status,statusLabel(a.status),a.notes,creatorName(a.user_id)].some(v=>String(v||'').toLowerCase().includes(q)))&&(!genre||a.genre===genre)&&(!condition||a.vinyl_condition===condition)&&(!collector||creatorName(a.user_id)===collector));
+  const q=$('search').value.trim().toLowerCase(),genre=$('genreFilter').value,condition=$('conditionFilter').value;
+  const out=albums.filter(a=>(!q||[a.artist,a.title,a.record_label,a.catalog_number,a.barcode,a.status,statusLabel(a.status),a.notes,creatorName(a.user_id)].some(v=>String(v||'').toLowerCase().includes(q)))&&(!genre||a.genre===genre)&&(!condition||a.vinyl_condition===condition)&&(!selectedCollectors.size||selectedCollectors.has(creatorName(a.user_id))));
   const sort=$('sort').value;return out.sort((a,b)=>sort==='title'?a.title.localeCompare(b.title):sort==='year_desc'?(b.release_year||0)-(a.release_year||0):sort==='value_desc'?(b.estimated_value||0)-(a.estimated_value||0):sort==='created_desc'?new Date(b.created_at)-new Date(a.created_at):a.artist.localeCompare(b.artist));
 }
 function render(){
@@ -52,10 +54,14 @@ function renderFolders(list){
 $('recordsViewBtn').onclick=()=>{currentView='records';render()};
 $('foldersViewBtn').onclick=()=>{currentView='folders';render()};
 $('search').addEventListener('input',render);
-['genreFilter','conditionFilter','collectorFilter','sort'].forEach(id=>{
+['genreFilter','conditionFilter','sort'].forEach(id=>{
   $(id).addEventListener('input',render);
   $(id).addEventListener('change',render);
 });
+$('collectorFilterBtn').onclick=e=>{e.stopPropagation();const menu=$('collectorMenu'),opening=menu.classList.contains('hidden');menu.classList.toggle('hidden',!opening);$('collectorFilterBtn').setAttribute('aria-expanded',String(opening))};
+$('collectorMenu').onclick=e=>e.stopPropagation();
+$('collectorMenu').addEventListener('change',e=>{if(e.target.id==='collectorAll'){selectedCollectors.clear();document.querySelectorAll('.collector-check').forEach(box=>box.checked=false)}else if(e.target.classList.contains('collector-check')){e.target.checked?selectedCollectors.add(e.target.value):selectedCollectors.delete(e.target.value)}updateCollectorButton();render()});
+document.addEventListener('click',()=>{$('collectorMenu').classList.add('hidden');$('collectorFilterBtn').setAttribute('aria-expanded','false')});
 function showCoverPreview(src=''){const img=$('coverPreview');img.classList.toggle('hidden',!src);$('coverPrompt').classList.toggle('hidden',!!src);if(src)img.src=src;else img.removeAttribute('src')}
 function selectCover(file){if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type))return toast('Please choose a PNG, JPG, or WEBP image.',true);if(file.size>5*1024*1024)return toast('Cover images must be 5 MB or smaller.',true);pendingCoverFile=file;$('coverUrl').value='';showCoverPreview(URL.createObjectURL(file))}
 async function uploadCover(userId){if(!pendingCoverFile)return $('coverUrl').value.trim()||null;const ext=(pendingCoverFile.name.split('.').pop()||pendingCoverFile.type.split('/')[1]||'jpg').replace(/[^a-z0-9]/gi,'');const path=`${userId}/${crypto.randomUUID()}.${ext}`;const {error}=await db.storage.from('album-covers').upload(path,pendingCoverFile,{contentType:pendingCoverFile.type,upsert:false});if(error)throw error;return db.storage.from('album-covers').getPublicUrl(path).data.publicUrl}
