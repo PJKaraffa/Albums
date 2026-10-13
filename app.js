@@ -35,7 +35,7 @@ function populateCollectors(){const names=[...new Set(albums.map(a=>creatorName(
 function filteredAlbums(){
   const q=$('search').value.trim().toLowerCase(),genre=$('genreFilter').value,condition=$('conditionFilter').value;
   const out=albums.filter(a=>(!q||[a.artist,a.title,a.record_label,a.catalog_number,a.barcode,a.status,statusLabel(a.status),a.notes,creatorName(a.user_id)].some(v=>String(v||'').toLowerCase().includes(q)))&&(!genre||a.genre===genre)&&(!condition||a.vinyl_condition===condition)&&(!selectedCollectors.size||selectedCollectors.has(creatorName(a.user_id))));
-  const sort=$('sort').value;return out.sort((a,b)=>sort==='title'?a.title.localeCompare(b.title):sort==='year_desc'?(b.release_year||0)-(a.release_year||0):sort==='value_desc'?(b.estimated_value||0)-(a.estimated_value||0):sort==='created_desc'?new Date(b.created_at)-new Date(a.created_at):a.artist.localeCompare(b.artist));
+  const sort=$('sort').value;return out.sort((a,b)=>sort==='title'?a.title.localeCompare(b.title):sort==='year_desc'?(b.release_year||0)-(a.release_year||0):sort==='value_desc'?(b.estimated_value||0)-(a.estimated_value||0):sort==='created_desc'?new Date(b.created_at)-new Date(a.created_at):a.artist.localeCompare(b.artist)||((Number(a.release_year)||9999)-(Number(b.release_year)||9999))||a.title.localeCompare(b.title));
 }
 function render(){
   const list=filteredAlbums(),values=list.reduce((s,a)=>s+Number(a.estimated_value||0),0),grades=list.map(a=>conditions.indexOf(a.vinyl_condition)).filter(i=>i>=0);
