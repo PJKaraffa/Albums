@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=26">
+  <link rel="stylesheet" href="styles.css?v=28">
   <link rel="stylesheet" href="cover-upload.css?v=4">
 </head>
 <body>
@@ -49,8 +49,9 @@
           <button id="foldersViewBtn" class="view-btn" type="button">Folders</button>
         </div>
         <div class="tools">
-          <div class="search-wrap">⌕<input id="search" type="search" placeholder="Search artist, album, label, catalog number, barcode…"></div>
+          <div class="search-wrap">⌕<input id="search" type="search" placeholder="Search artist, album, instrument, label, barcode…"></div>
           <select id="genreFilter"><option value="">All genres</option></select>
+          <select id="instrumentFilter"><option value="">All instruments</option></select>
           <select id="conditionFilter"><option value="">All conditions</option><option>Mint (M)</option><option>Near Mint (NM)</option><option>Excellent (EX)</option><option>Very Good Plus (VG+)</option><option>Very Good (VG)</option><option>Good Plus (G+)</option><option>Good (G)</option><option>Fair (F)</option><option>Poor (P)</option></select>
           <div id="collectorMulti" class="collector-multi">
             <button id="collectorFilterBtn" class="collector-filter-btn" type="button" aria-haspopup="true" aria-expanded="false">All collectors <span>▾</span></button>
@@ -88,6 +89,24 @@
         <label>Status<select id="status"><option value="IN_STOCK">IN_STOCK</option><option value="HELD">HELD — Short-term / System cart hold</option><option value="PUT_ASIDE">PUT_ASIDE — Manual / Long-term hold</option><option value="SOLD">SOLD</option></select></label>
         <label>Pressing type<select id="pressingType"><option value="">Not specified</option><option>Original Pressing</option><option>Reissue</option><option>Bootleg</option><option>Special Edition</option></select></label>
         <label>Purchased from<input id="purchasedFrom" maxlength="160" placeholder="Record store, seller, show, or website"></label>
+        <fieldset class="full instrument-options">
+          <legend>Instruments — select all that apply</legend>
+          <div class="instrument-grid">
+            <label><input class="instrument-check" type="checkbox" value="Drums"> <span>Drums</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Guitar"> <span>Guitar</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Bass"> <span>Bass</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Saxophone"> <span>Saxophone</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Trumpet"> <span>Trumpet</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Keyboards"> <span>Keyboards</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Piano"> <span>Piano</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Vocals"> <span>Vocals</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Percussion"> <span>Percussion</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Violin"> <span>Violin</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Trombone"> <span>Trombone</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Flute"> <span>Flute</span></label>
+          </div>
+        </fieldset>
+        <label class="full">Musicians / Performers<textarea id="musicians" rows="3" maxlength="2000" placeholder="Enter names separated by commas or one name per line"></textarea><small class="field-help">Example: Billy Cobham, Allan Holdsworth, Jan Hammer</small></label>
         <fieldset class="full packaging-options">
           <legend>Packaging details — select all that apply</legend>
           <label><input id="stillSealed" type="checkbox"> <span><strong>SS (Still Sealed)</strong><small>Factory sealed and unopened</small></span></label>
@@ -127,6 +146,6 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=26"></script>
+  <script src="app.js?v=28"></script>
 </body>
 </html>
