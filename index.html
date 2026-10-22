@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=29">
+  <link rel="stylesheet" href="styles.css?v=30">
   <link rel="stylesheet" href="cover-upload.css?v=4">
 </head>
 <body>
@@ -87,7 +87,7 @@
         <label>Catalog number<input id="catalogNumber" maxlength="80" placeholder="CL 1355"></label>
         <label>Barcode<input id="barcode" maxlength="100" placeholder="Scan or enter barcode"></label>
         <label>Status<select id="status"><option value="IN_STOCK">IN_STOCK</option><option value="HELD">HELD — Short-term / System cart hold</option><option value="PUT_ASIDE">PUT_ASIDE — Manual / Long-term hold</option><option value="SOLD">SOLD</option></select></label>
-        <label>Pressing type<select id="pressingType"><option value="">Not specified</option><option>Original Pressing</option><option>Reissue</option><option>Bootleg</option><option>Special Edition</option><option>Promo</option><option>Club Edition</option></select></label>
+        <label>Pressing type<select id="pressingType"><option value="">Not specified</option><option>Original Pressing</option><option>Reissue</option><option>Bootleg</option><option>Special Edition</option><option>Club Edition</option></select></label>
         <label>Purchased from<input id="purchasedFrom" maxlength="160" placeholder="Record store, seller, show, or website"></label>
         <fieldset class="full instrument-options">
           <legend>Instruments — select all that apply</legend>
@@ -112,6 +112,7 @@
           <label><input id="stillSealed" type="checkbox"> <span><strong>SS (Still Sealed)</strong><small>Factory sealed and unopened</small></span></label>
           <label><input id="hypeSticker" type="checkbox"> <span><strong>With Hype Sticker (w/ Hype)</strong><small>Original promotional sticker is present</small></span></label>
           <label><input id="inShrink" type="checkbox"> <span><strong>In Shrink</strong><small>Original shrink wrap remains on the sleeve</small></span></label>
+          <label><input id="promoCopy" type="checkbox"> <span><strong>Promo</strong><small>Promotional copy supplied by the label</small></span></label>
         </fieldset>
         <label>Country<input id="country" maxlength="60" placeholder="US"></label>
         <label>Purchase price ($)<input id="purchasePrice" type="number" min="0" step="0.01" placeholder="25.00"></label>
@@ -146,6 +147,6 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=29"></script>
+  <script src="app.js?v=30"></script>
 </body>
 </html>
