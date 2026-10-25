@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Search, organize, and value your CD collection.">
+  <title>Karaffa Vault | CD Collection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=31">
+  <link rel="stylesheet" href="cover-upload.css?v=4">
+</head>
+<body>
+  <div id="toast" class="toast" role="status"></div>
+  <section id="authView" class="auth-shell">
+    <div class="auth-art"><div class="record"><div class="label">KV</div></div><h1>Karaffa Vault</h1><p>Our family collection, beautifully organized.</p></div>
+    <form id="authForm" class="auth-card">
+      <span class="eyebrow">CD COLLECTION MANAGER</span>
+      <h2 id="authTitle">Welcome back</h2>
+      <p id="authCopy">Sign in to open your CD library.</p>
+      <label>Email<input id="email" type="email" required autocomplete="email" placeholder="you@example.com"></label>
+      <label id="usernameField" class="hidden">Username<input id="username" type="text" maxlength="40" autocomplete="nickname" placeholder="PJ"></label>
+      <label>Password<input id="password" type="password" required minlength="6" autocomplete="current-password" placeholder="At least 6 characters"></label>
+      <button id="authSubmit" class="primary" type="submit">Sign in</button>
+      <button id="toggleAuth" class="text-btn" type="button">New here? Create an account</button>
+    </form>
+  </section>
+
+  <div id="appView" class="app hidden">
+    <aside class="sidebar">
+      <a class="brand" href="#"><span class="mini-record"></span><span>Karaffa Vault</span></a>
+      <nav><a class="nav-item nav-link" style="display:block;text-decoration:none" href="index.html">◉ <span>LP Collection</span></a><button class="nav-item active">◉ <span>CD Collection</span></button><button id="addNav" class="nav-item">＋ <span>Add CD</span></button></nav>
+      <div class="side-footer"><div class="avatar" id="avatar">P</div><div><strong id="userEmail">Collector</strong><button id="signOut" class="signout">Sign out</button></div></div>
+    </aside>
+
+    <main>
+      <header class="topbar"><div><p class="eyebrow">THE CD LIBRARY</p><h1>CD Collection</h1></div><button id="addBtn" class="primary">＋ Add CD</button></header>
+      <section class="metrics">
+        <article><span>CDs</span><strong id="albumCount">0</strong><small>in the CD collection</small></article>
+        <article><span>Estimated value</span><strong id="totalValue">$0</strong><small>current collection value</small></article>
+        <article><span>Genres</span><strong id="genreCount">0</strong><small>across your shelves</small></article>
+        <article><span>Average condition</span><strong id="avgCondition">—</strong><small>disc grade</small></article>
+      </section>
+
+      <section class="catalog-card">
+        <div class="view-switch" role="group" aria-label="Collection view">
+          <button id="recordsViewBtn" class="view-btn active" type="button">All CDs</button>
+          <button id="foldersViewBtn" class="view-btn" type="button">Folders</button>
+        </div>
+        <div class="tools">
+          <div class="search-wrap">⌕<input id="search" type="search" placeholder="Search artist, CD, musician, instrument, label, barcode…"></div>
+          <select id="genreFilter"><option value="">All genres</option></select>
+          <select id="instrumentFilter"><option value="">All instruments</option></select>
+          <select id="conditionFilter"><option value="">All conditions</option><option>Mint (M)</option><option>Near Mint (NM)</option><option>Excellent (EX)</option><option>Very Good Plus (VG+)</option><option>Very Good (VG)</option><option>Good Plus (G+)</option><option>Good (G)</option><option>Fair (F)</option><option>Poor (P)</option></select>
+          <div id="collectorMulti" class="collector-multi">
+            <button id="collectorFilterBtn" class="collector-filter-btn" type="button" aria-haspopup="true" aria-expanded="false">All collectors <span>▾</span></button>
+            <div id="collectorMenu" class="collector-menu hidden">
+              <label class="collector-option collector-all"><input id="collectorAll" type="checkbox" checked> <span>All collectors</span></label>
+              <div id="collectorOptions"></div>
+            </div>
+          </div>
+          <select id="sort"><option value="artist">Artist / Year ↑</option><option value="title">CD A–Z</option><option value="year_desc">Newest first</option><option value="value_desc">Highest value</option><option value="created_desc">Recently added</option></select>
+          <button id="exportBtn" class="outline">Export CSV</button>
+        </div>
+        <div id="albumGrid" class="album-grid"></div>
+        <div id="folderGrid" class="folder-grid hidden"></div>
+        <div id="emptyState" class="empty"><div class="empty-record">♪</div><h3>No CDs found</h3><p>Add your first CD or change the filters.</p><button class="primary add-trigger">Add your first CD</button></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="albumDialog">
+    <form id="albumForm" method="dialog">
+      <div class="dialog-head"><div><span class="eyebrow">CD CATALOG ENTRY</span><h2 id="dialogTitle">Add a CD</h2></div><button class="icon-btn" id="closeDialog" type="button">×</button></div>
+      <input id="albumId" type="hidden">
+      <div class="form-grid">
+        <label>Artist *<input id="artist" required maxlength="120" placeholder="Miles Davis"></label>
+        <label>CD title *<input id="title" required maxlength="160" placeholder="Kind of Blue"></label>
+        <label>Release year<input id="releaseYear" type="number" min="1900" max="2100" placeholder="1959"></label>
+        <label>Genre<input id="genre" list="genres" maxlength="60" placeholder="Rock"><datalist id="genres"><option>Rock</option><option>Jazz</option><option>Blues</option><option>R&B / Soul</option><option>Funk</option><option>Latin</option><option>Pop</option><option>Classical</option><option>Country</option><option>Reggae</option><option>Electronic</option><option>Hip-Hop</option><option>World</option><option>Soundtrack</option></datalist></label>
+        <label>Style<input id="style" list="styles" maxlength="80" placeholder="Progressive Rock"><datalist id="styles"><option>Progressive Rock</option><option>Hard Rock</option><option>Classic Rock</option><option>Jazz Fusion</option><option>Bebop</option><option>Big Band</option><option>Heavy Metal</option><option>Funk Rock</option><option>Latin Rock</option><option>Alternative Rock</option></datalist></label>
+        <label>Format<select id="format"><option>CD</option><option>2×CD</option><option>3×CD</option><option>SACD</option><option>HDCD</option><option>DVD-Audio</option><option>Enhanced CD</option><option>Mini CD</option><option>Box Set</option></select></label>
+        <label>Disc condition<select id="vinylCondition"><option>Mint (M)</option><option selected>Near Mint (NM)</option><option>Excellent (EX)</option><option>Very Good Plus (VG+)</option><option>Very Good (VG)</option><option>Good Plus (G+)</option><option>Good (G)</option><option>Fair (F)</option><option>Poor (P)</option></select></label>
+        <label>Booklet condition<select id="sleeveCondition"><option>Mint (M)</option><option selected>Near Mint (NM)</option><option>Excellent (EX)</option><option>Very Good Plus (VG+)</option><option>Very Good (VG)</option><option>Good Plus (G+)</option><option>Good (G)</option><option>Fair (F)</option><option>Poor (P)</option><option>No Booklet</option></select></label>
+        <label>Case condition<select id="caseCondition"><option>Mint (M)</option><option selected>Near Mint (NM)</option><option>Excellent (EX)</option><option>Very Good Plus (VG+)</option><option>Very Good (VG)</option><option>Good Plus (G+)</option><option>Good (G)</option><option>Fair (F)</option><option>Poor (P)</option><option>No Case</option></select></label>
+        <label>Label<input id="recordLabel" maxlength="100" placeholder="Columbia"></label>
+        <label>Catalog number<input id="catalogNumber" maxlength="80" placeholder="CL 1355"></label>
+        <label>Barcode<input id="barcode" maxlength="100" placeholder="Scan or enter barcode"></label>
+        <label>Status<select id="status"><option value="IN_STOCK">IN_STOCK</option><option value="HELD">HELD — Short-term / System cart hold</option><option value="PUT_ASIDE">PUT_ASIDE — Manual / Long-term hold</option><option value="SOLD">SOLD</option></select></label>
+        <label>Edition type<select id="pressingType"><option value="">Not specified</option><option>Original Release</option><option>Reissue</option><option>Remastered</option><option>Bootleg</option><option>Special Edition</option><option>Club Edition</option></select></label>
+        <label>Purchased from<input id="purchasedFrom" maxlength="160" placeholder="Record store, seller, show, or website"></label>
+        <fieldset class="full instrument-options">
+          <legend>Instruments — select all that apply</legend>
+          <div class="instrument-grid">
+            <label><input class="instrument-check" type="checkbox" value="Drums"> <span>Drums</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Guitar"> <span>Guitar</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Bass"> <span>Bass</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Saxophone"> <span>Saxophone</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Trumpet"> <span>Trumpet</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Keyboards"> <span>Keyboards</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Piano"> <span>Piano</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Vocals"> <span>Vocals</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Percussion"> <span>Percussion</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Violin"> <span>Violin</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Trombone"> <span>Trombone</span></label>
+            <label><input class="instrument-check" type="checkbox" value="Flute"> <span>Flute</span></label>
+          </div>
+        </fieldset>
+        <label class="full">Musicians / Performers<textarea id="musicians" rows="3" maxlength="2000" placeholder="Enter names separated by commas or one name per line"></textarea><small class="field-help">Example: Billy Cobham, Allan Holdsworth, Jan Hammer</small></label>
+        <fieldset class="full packaging-options">
+          <legend>Packaging details — select all that apply</legend>
+          <label><input id="stillSealed" type="checkbox"> <span><strong>SS (Still Sealed)</strong><small>Factory sealed and unopened</small></span></label>
+          <label><input id="hypeSticker" type="checkbox"> <span><strong>With Hype Sticker (w/ Hype)</strong><small>Original promotional sticker is present</small></span></label>
+          <label><input id="inShrink" type="checkbox"> <span><strong>In Shrink</strong><small>Original shrink wrap remains on the case</small></span></label>
+          <label><input id="promoCopy" type="checkbox"> <span><strong>Promo</strong><small>Promotional copy supplied by the label</small></span></label>
+        </fieldset>
+        <label>Country<input id="country" maxlength="60" placeholder="US"></label>
+        <label>Purchase price ($)<input id="purchasePrice" type="number" min="0" step="0.01" placeholder="25.00"></label>
+        <label>Estimated value ($)<input id="estimatedValue" type="number" min="0" step="0.01" placeholder="40.00"></label>
+        <label>Acquired date<input id="acquiredDate" type="date"></label>
+        <label>Storage location<input id="location" maxlength="100" placeholder="Shelf A3"></label>
+        <label id="enteredByField">Entered by<select id="enteredBy"></select></label>
+        <div class="full cover-field">
+          <span class="field-label">CD cover</span>
+          <div id="coverDropZone" class="cover-drop" tabindex="0">
+            <img id="coverPreview" class="cover-preview hidden" alt="CD cover preview">
+            <div id="coverPrompt"><strong>Drop, paste, or upload a cover</strong><small>PNG, JPG, WEBP — maximum 5 MB</small></div>
+            <button id="chooseCover" class="outline" type="button">Choose image</button>
+            <input id="coverFile" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+          </div>
+          <div class="cover-options"><span>or use an image URL</span><input id="coverUrl" type="url" placeholder="https://example.com/cover.jpg"><button id="removeCover" class="text-btn" type="button">Remove cover</button></div>
+        </div>
+        <label class="full">Notes<textarea id="notes" rows="3" maxlength="1000" placeholder="Edition details, mastering, inserts, personal notes…"></textarea></label>
+      </div>
+      <div class="dialog-actions"><button id="cancelBtn" class="outline" type="button">Cancel</button><button class="primary" type="submit">Save CD</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="albumInfoDialog" class="info-dialog">
+    <div class="info-dialog-body">
+      <div class="dialog-head"><div><span class="eyebrow">CD INFORMATION</span><h2 id="infoTitle">CD</h2><p id="infoArtist" class="info-artist"></p></div><button class="icon-btn" id="closeInfoDialog" type="button" aria-label="Close">×</button></div>
+      <div class="info-layout"><div id="infoCover" class="info-cover"></div><div id="infoDetails" class="info-details"></div></div>
+      <section class="copies-section"><h3>Physical copies</h3><div id="infoCopies" class="copies-list"></div></section>
+      <div id="infoNotesWrap" class="info-notes"><span>Notes</span><p id="infoNotes"></p></div>
+      <div class="dialog-actions"><button id="addCopyBtn" class="outline" type="button">＋ Add another copy</button><button id="closeInfoBtn" class="primary" type="button">Close</button></div>
+    </div>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="cds.js?v=1"></script>
+</body>
+</html>
