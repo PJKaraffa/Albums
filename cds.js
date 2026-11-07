@@ -42,8 +42,8 @@ function filteredAlbums(){
   const sort=$('sort').value;return out.sort((a,b)=>sort==='title'?a.title.localeCompare(b.title):sort==='year_desc'?(b.release_year||0)-(a.release_year||0):sort==='value_desc'?(b.estimated_value||0)-(a.estimated_value||0):sort==='created_desc'?new Date(b.created_at)-new Date(a.created_at):a.artist.localeCompare(b.artist)||((Number(a.release_year)||9999)-(Number(b.release_year)||9999))||a.title.localeCompare(b.title));
 }
 function render(){
-  const list=filteredAlbums(),values=list.reduce((s,a)=>s+Number(a.estimated_value||0),0),grades=list.map(a=>conditions.indexOf(a.disc_condition)).filter(i=>i>=0);
-  $('albumCount').textContent=list.length;$('totalValue').textContent=money(values);$('genreCount').textContent=new Set(list.map(a=>a.genre).filter(Boolean)).size;$('avgCondition').textContent=grades.length?conditions[Math.round(grades.reduce((a,b)=>a+b,0)/grades.length)].match(/\((.*?)\)/)?.[1]||'—':'—';
+  const list=filteredAlbums(),values=list.reduce((s,a)=>s+Number(a.estimated_value||0),0),grades=list.map(a=>conditions.indexOf(a.disc_condition)).filter(i=>i>=0),uniqueAlbums=new Set(list.map(albumKey)).size;
+  $('albumCount').textContent=list.length;$('uniqueAlbumCount').textContent=uniqueAlbums;$('totalValue').textContent=money(values);$('genreCount').textContent=new Set(list.map(a=>a.genre).filter(Boolean)).size;$('avgCondition').textContent=grades.length?conditions[Math.round(grades.reduce((a,b)=>a+b,0)/grades.length)].match(/\((.*?)\)/)?.[1]||'—':'—';
   $('recordsViewBtn').classList.toggle('active',currentView==='records');$('foldersViewBtn').classList.toggle('active',currentView==='folders');
   $('albumGrid').classList.toggle('hidden',currentView!=='records');$('folderGrid').classList.toggle('hidden',currentView!=='folders');$('emptyState').classList.toggle('hidden',list.length>0);
   if(currentView==='folders')return renderFolders(list);
