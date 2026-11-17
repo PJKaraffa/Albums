@@ -136,6 +136,7 @@ main{padding:25px 16px}
 .packaging-options{margin:18px 0 0;padding:14px;border:1px solid var(--line);border-radius:10px}.packaging-options legend{padding:0 6px;font-size:.84rem;font-weight:700}.packaging-options label{display:flex;align-items:flex-start;gap:9px;margin:8px 0;padding:8px;border-radius:8px;background:#f5f1e8;cursor:pointer}.packaging-options input{width:18px;height:18px;margin:2px 0 0;padding:0;accent-color:var(--green);box-shadow:none}.packaging-options span{display:block}.packaging-options strong,.packaging-options small{display:block}.packaging-options small{margin-top:2px;color:var(--muted);font-weight:400}
 .instrument-options{margin:18px 0 0;padding:14px;border:1px solid var(--line);border-radius:10px}.instrument-options legend{padding:0 6px;font-size:.84rem;font-weight:700}.instrument-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.instrument-grid label{display:flex;align-items:center;gap:7px;margin:0;padding:8px;border-radius:8px;background:#f5f1e8;cursor:pointer}.instrument-grid input{width:17px;height:17px;margin:0;padding:0;accent-color:var(--green);box-shadow:none}.instrument-grid span{font-size:.8rem}
 .field-help{display:block;color:var(--muted);font-size:.72rem;font-weight:400;margin-top:1px}
+.copy-fields .copy-field-full{grid-column:1/-1}.copy-field-full b{white-space:pre-line;line-height:1.45}
 @media(max-width:650px){.instrument-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:650px){.info-layout{grid-template-columns:1fr}.info-cover{max-width:320px;margin:auto}.info-details{grid-template-columns:1fr 1fr}.info-dialog-body{padding:20px}}
 .view-btn{border:0;border-radius:999px;padding:10px 18px;background:transparent;color:var(--muted);font-weight:700}
@@ -155,3 +156,21 @@ main{padding:25px 16px}
 .folder-info small{margin-top:3px;color:#5f5543}
 .folder-info b{color:var(--green);white-space:nowrap}
 @media(max-width:650px){.folder-grid{grid-template-columns:1fr 1fr;gap:16px}.genre-folder{padding:11px}.folder-covers{height:105px}.folder-info{display:block}.folder-info b{display:block;margin-top:6px}}
+
+/* Phone collection layout: show two album covers per row instead of one. */
+@media(max-width:650px){
+main{padding:18px 10px 35px}
+.catalog-card{padding:10px;border-radius:12px}
+.album-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.album-card{min-width:0;border-radius:10px}
+.card-body{padding:10px}
+.card-body h3{font-size:.86rem}
+.artist{font-size:.72rem;margin-bottom:7px}
+.tags{gap:3px}
+.tag{font-size:.58rem;padding:3px 5px}
+.entered-by{font-size:.68rem}
+.card-meta{margin-top:8px;padding-top:8px;gap:4px}
+.value{font-size:.82rem}
+.card-actions button{padding:3px}
+.clickable-cover::after{inset:auto 7px 7px;padding:5px 7px;font-size:.66rem}
+}
